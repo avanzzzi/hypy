@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+import hvclient
+import click
+import configparser
+
+@click.group()
+@click.option('--sync', '-s', is_flag=True, help='Syncronize with server updating local cache')
+@click.pass_context
+def main(ctx, sync):
+    ctx.obj['SYNC'] = sync
+
+@main.command(help='List virtual machines and its indexes')
+@click.pass_context
+def list(ctx):
+    hvclient.update_cache(ctx.obj['SYNC'])
+    hvclient.list_vms()
+
+@main.command(help='Connect to virtual machine identified by index')
+@click.argument('index')
+def connect(index):
+    hvclient.connect(int(index))
+
+@main.command(help='Start virutal machine identified by index')
+@click.argument('index')
+def start(index):
+    hvclient.start_vm(int(index))
+
+@main.command(help='Stop virtual machine identified by index')
+@click.argument('index')
+def stop(index):
+    hvclient.stop_vm(int(index))
+
+def load_config():
+    config = configparser.ConfigParser()
+    config.read('hypy.conf')
+
+    credentials = config['credentials']
+    
+    configuration = {}
+    configuration['user'] = credentials['user']
+    configuration['pass'] = credentials['pass']
+    configuration['domain'] = credentials['domain']
+    configuration['host'] = credentials['host']
+
+    options = config['options']
+
+    configuration['cache_file'] = options['cache_file']
+    configuration['sync_interval'] = options['sync_interval']
+
+    hvclient.setup(configuration)
+
+if __name__ == "__main__":
+    load_config()
+    main(obj={})
+
