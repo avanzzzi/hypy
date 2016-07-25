@@ -28,6 +28,12 @@ def snaps(index):
 def restore(index, snap_name):
     hvclient.restore_vm_snap(int(index), snap_name)
 
+@main.command(help="Create a new snapshot with vm's current state")
+@click.argument('index')
+@click.argument('snap_name')
+def create(index, snap_name):
+    hvclient.create_vm_snapshot(int(index), snap_name)
+
 @main.command(help='Connect to virtual machine identified by index')
 @click.argument('index')
 def connect(index):

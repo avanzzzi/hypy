@@ -32,13 +32,12 @@ def connect(index):
     host = config['host']
 
     vm_info = get_vm(index)
-    if vm_info != '' and vm_info != 2:
+    if vm_info != '' and vm_info['State'] != 2:
         start_vm(index)
         time.sleep(2)
 
     cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw), '/cert-tofu']
-    print(vm_id)
-    subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    subprocess.Popen(cmd)
     #retval = p.wait()
 
 def update_cache(force=False):
@@ -107,7 +106,7 @@ def list_vm_snaps(vm_index):
         return False
 
     snaps_json = json.loads(rs.std_out.decode('utf-8'))
-    if not 'listName' in snaps_json:
+    if type(snaps_json) is dict:
         snaps_json = [ snaps_json ]
 
     print("-- Virtual Machine Snapshots --")
@@ -125,6 +124,25 @@ def restore_vm_snap(vm_index, snap_name):
     ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
 
     print('Restoring snapshot "{0}" in {1}'.format(snap_name, vm_name))
+    rs = run_ps(ps_script, server)
+
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return False
+
+    print("Success")
+    return True
+
+def create_vm_snapshot(vm_index, snap_name):
+    """
+    Create a new snapshot with vm's current state
+    """
+    load_vms()
+
+    vm_name = vms[vm_index]['Name']
+    ps_script = 'Checkpoint-VM -Name "{0}" -SnapshotName "{1}" -Confirm:$false'.format(vm_name, snap_name)
+
+    print('Creating snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
     rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:
