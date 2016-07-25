@@ -6,15 +6,13 @@ import click
 import configparser
 
 @click.group()
-@click.option('--sync', '-s', is_flag=True, help='Syncronize with server updating local cache')
-@click.pass_context
-def main(ctx, sync):
-    ctx.obj['SYNC'] = sync
+def main():
+    pass
 
 @main.command(help='List virtual machines and its indexes')
-@click.pass_context
-def list(ctx):
-    hvclient.update_cache(ctx.obj['SYNC'])
+@click.option('--sync', '-s', is_flag=True, help='Syncronize with server updating local cache')
+def list(sync):
+    hvclient.update_cache(sync)
     hvclient.list_vms()
 
 @main.command(help='List virtual machine snapshots')
@@ -39,7 +37,7 @@ def create(index, snap_name):
 def connect(index):
     hvclient.connect(int(index))
 
-@main.command(help='Start virutal machine identified by index')
+@main.command(help='Start virtual machine identified by index')
 @click.argument('index')
 def start(index):
     hvclient.start_vm(int(index))
