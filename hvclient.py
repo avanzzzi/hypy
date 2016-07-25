@@ -15,7 +15,7 @@ vms = None
 server = None
 config = None
 vms_cache_filename = None
-states = { 3 : 'off    ', 
+states = { 3 : 'off    ',
            2 : 'running',
            9 : 'paused ',
            6 : 'saved  ' }
@@ -27,20 +27,19 @@ def connect(index):
     load_vms()
 
     vm_id = vms[index]['Id']
-
     user = config['user']
     passw = config['pass']
     host = config['host']
 
-    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw)]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    retval = p.wait()
-
-    if retval != 0:
-        print("Starting machine {0}".format(index))
+    vm_info = get_vm(index)
+    if vm_info != '' and vm_info != 2:
         start_vm(index)
         time.sleep(2)
-        connect(index)
+
+    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw), '/cert-tofu']
+    print(vm_id)
+    subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    #retval = p.wait()
 
 def update_cache(force=False):
     """
@@ -92,7 +91,7 @@ def list_vms():
         #print("[{0}] {1} {2} {3}".format(vms.index(vm), states[vm['State']], vm['Name'], vm['Id']))
         print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), states[vm['State']], vm['Name']))
 
-def list_vm_snapshots(p, vm_index):
+def list_vm_snaps(vm_index):
     """
     List vm snapshots by vm index
     """
@@ -101,17 +100,57 @@ def list_vm_snapshots(p, vm_index):
     vm_name = vms[vm_index]['Name']
     ps_script = "Get-VM {0} | Get-VMSnapshot | Select Name,ParentSnapshotName | ConvertTo-Json".format(vm_name)
 
-    rs = run_ps(ps_script, p)
+    rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:
         print(rs.std_err)
         return False
 
-    snaps_json = json.loads(rs.std_out)
-    print(snaps_json)
-    #for snap in snaps_json:
-        #print snap
+    snaps_json = json.loads(rs.std_out.decode('utf-8'))
+    if not 'listName' in snaps_json:
+        snaps_json = [ snaps_json ]
 
+    print("-- Virtual Machine Snapshots --")
+    print("{0} {1}".format("Name".ljust(20), "Parent".ljust(20)))
+    for snap in snaps_json:
+        print("{0} {1}".format(str(snap['Name']).ljust(20), str(snap['ParentSnapshotName']).ljust(20)))
+
+def restore_vm_snap(vm_index, snap_name):
+    """
+    Restore virtual machine snapshot
+    """
+    load_vms()
+
+    vm_name = vms[vm_index]['Name']
+    ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
+
+    print('Restoring snapshot "{0}" in {1}'.format(snap_name, vm_name))
+    rs = run_ps(ps_script, server)
+
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return False
+
+    print("Success")
+    return True
+
+def get_vm(vm_index):
+    """
+    Gets vm info by index
+    """
+    load_vms()
+
+    vm_name = vms[vm_index]['Name']
+
+    ps_script = "Get-VM {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
+    rs = run_ps(ps_script, server)
+
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return
+
+    vm_json = json.loads(rs.std_out.decode('utf-8'))
+    return vm_json
 
 def stop_vm(vm_index):
     """
@@ -120,14 +159,16 @@ def stop_vm(vm_index):
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-
     ps_script = "Stop-VM {0}".format(vm_name)
+
+    print('Stopping VM "{0}"'.format(vm_name))
     rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:
         print( rs.std_err)
         return False
 
+    print("Success")
     return True
 
 def start_vm(vm_index):
@@ -137,14 +178,16 @@ def start_vm(vm_index):
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-
     ps_script = "Start-VM {0}".format(vm_name)
+
+    print('Starting VM "{0}"'.format(vm_name))
     rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:
         print(rs.std_err)
         return False
 
+    print("Success")
     return True
 
 def setup(configp):
@@ -160,7 +203,6 @@ def setup(configp):
     host = config['host']
     vms_cache_filename = config['cache_file']
 
-    #print('Setando server')
     server = Protocol(endpoint='http://{0}:5985/wsman'.format(host),
                  transport='ntlm',
                  username='{0}\{1}'.format(domain,user),

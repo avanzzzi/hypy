@@ -17,6 +17,17 @@ def list(ctx):
     hvclient.update_cache(ctx.obj['SYNC'])
     hvclient.list_vms()
 
+@main.command(help='List virtual machine snapshots')
+@click.argument('index')
+def snaps(index):
+    hvclient.list_vm_snaps(int(index))
+
+@main.command(help='Restore virtual machine snapshot')
+@click.argument('index')
+@click.argument('snap_name')
+def restore(index, snap_name):
+    hvclient.restore_vm_snap(int(index), snap_name)
+
 @main.command(help='Connect to virtual machine identified by index')
 @click.argument('index')
 def connect(index):
@@ -37,7 +48,7 @@ def load_config():
     config.read('hypy.conf')
 
     credentials = config['credentials']
-    
+
     configuration = {}
     configuration['user'] = credentials['user']
     configuration['pass'] = credentials['pass']
