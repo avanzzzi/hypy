@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf-8
 
 from winrm import Protocol
@@ -36,7 +36,9 @@ def connect(index):
         start_vm(index)
         time.sleep(2)
 
-    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw), '/cert-tofu']
+    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw),
+            '/t:{} [{}] {}'.format(host, index, vm_info['Name'])]
+    print(cmd)
     subprocess.Popen(cmd)
     #retval = p.wait()
 
