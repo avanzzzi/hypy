@@ -37,8 +37,9 @@ def connect(index):
         time.sleep(2)
 
     cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw),
-            '/t:{} [{}] {}'.format(host, index, vm_info['Name'])]
-    print(cmd)
+            '/t:{} [{}] {}'.format(host, index, vm_info['Name']), '/cert-ignore']
+
+    #print(cmd)
     subprocess.Popen(cmd)
     #retval = p.wait()
 
