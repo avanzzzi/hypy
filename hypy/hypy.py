@@ -34,6 +34,14 @@ def restore(index, snap_name):
     hvclient.restore_vm_snap(int(index), snap_name)
 
 
+@main.command(help="Delete a machine's snapshot by name")
+@click.argument('index')
+@click.argument('snap_name')
+@click.option('-r', is_flag=True, help="Remove snapshot's children as well")
+def delete(index, snap_name, r):
+    hvclient.remove_vm_snapshot(int(index), snap_name, r)
+
+
 @main.command(help="Create a new snapshot with vm's current state")
 @click.argument('index')
 @click.argument('snap_name')

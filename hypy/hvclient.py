@@ -166,6 +166,40 @@ def restore_vm_snap(vm_index, snap_name):
     return True
 
 
+def remove_vm_snapshot(vm_index, snap_name, recursive=False):
+    """
+    Deletes a virtual machine checkpoint
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
+        snap_name (str): The name of the checkpoint to be deleted
+        recursive (bool, optional): Specifies that the checkpoint’s children are to be
+            deleted along with the checkpoint 
+
+    Returns:
+        bool: True if success
+    """
+    load_vms()
+
+    vm_name = vms[vm_index]['Name']
+    ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name, snap_name)
+    if recursive:
+        ps_script += " -IncludeAllChildSnapshots"
+    ps_script += " -Confirm:$false"
+
+    print('Removing snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
+    if recursive:
+        print("and it's children")
+    rs = run_ps(ps_script, server)
+
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return False
+
+    print("Success")
+    return True
+
+
 def create_vm_snapshot(vm_index, snap_name):
     """
     Create a new snapshot with vm's current state
