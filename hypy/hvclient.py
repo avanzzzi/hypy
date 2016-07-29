@@ -15,14 +15,18 @@ vms = None
 server = None
 config = None
 vms_cache_filename = None
-states = { 3 : 'off    ',
-           2 : 'running',
-           9 : 'paused ',
-           6 : 'saved  ' }
+states = {3: 'off    ',
+          2: 'running',
+          9: 'paused ',
+          6: 'saved  '}
+
 
 def connect(index):
     """
     Connect to virtual machine by index using freerdp
+
+    Args:
+        index (int): The machine's index generated in the current cache
     """
     load_vms()
 
@@ -36,23 +40,31 @@ def connect(index):
         start_vm(index)
         time.sleep(2)
 
-    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user), '/p:{0}'.format(passw),
-            '/t:{} [{}] {}'.format(host, index, vm_info['Name']), '/cert-ignore']
+    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user),
+           '/p:{0}'.format(passw),
+           '/t:{} [{}] {}'.format(host, index, vm_info['Name']), '/cert-ignore']
 
-    #print(cmd)
+    # print(cmd)
     subprocess.Popen(cmd)
-    #retval = p.wait()
+    # retval = p.wait()
+
 
 def update_cache(force=False):
     """
     Checks cache file modification time and update vm list
     Creates cache file if nonexistent
+
+    Args:
+        force (bool, optional): Whether should force cache update or not
+
+    Returns:
+        bool: True for success
     """
     modified = datetime.min
     if os.path.isfile(vms_cache_filename):
         modified = datetime.fromtimestamp(os.path.getmtime(vms_cache_filename))
 
-    if modified < datetime.now() - timedelta(hours = int(config['sync_interval'])) or force:
+    if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
         ps_script = "Get-VM * | Select Name,Id,State | ConvertTo-Json"
         rs = run_ps(ps_script, server)
 
@@ -66,9 +78,13 @@ def update_cache(force=False):
 
     return True
 
+
 def load_vms():
     """
     Loads current cache file into memory
+
+    Returns:
+        bool: True for success
     """
     global vms
 
@@ -81,6 +97,7 @@ def load_vms():
 
     return True
 
+
 def list_vms():
     """
     List virtual machines
@@ -90,12 +107,16 @@ def list_vms():
     # Listing
     print("-- Hyper-V Virtual Machine Listing --")
     for vm in vms:
-        #print("[{0}] {1} {2} {3}".format(vms.index(vm), states[vm['State']], vm['Name'], vm['Id']))
-        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), states[vm['State']], vm['Name']))
+        # print("[{0}] {1} {2} {3}".format(vms.index(vm), states[vm['State']], vm['Name'], vm['Id']))
+        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), states[vm['St/home/gabrielate']], vm['Name']))
+
 
 def list_vm_snaps(vm_index):
     """
     List vm snapshots by vm index
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
     """
     load_vms()
 
@@ -110,16 +131,24 @@ def list_vm_snaps(vm_index):
 
     snaps_json = json.loads(rs.std_out.decode('utf-8'))
     if type(snaps_json) is dict:
-        snaps_json = [ snaps_json ]
+        snaps_json = [snaps_json]
 
     print("-- Virtual Machine Snapshots --")
     print("{0} {1}".format("Name".ljust(20), "Parent".ljust(20)))
     for snap in snaps_json:
         print("{0} {1}".format(str(snap['Name']).ljust(20), str(snap['ParentSnapshotName']).ljust(20)))
 
+
 def restore_vm_snap(vm_index, snap_name):
     """
     Restore virtual machine snapshot
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
+        snap_name (str): The name of the checkpoint to be restored
+
+    Returns:
+        bool: True if success
     """
     load_vms()
 
@@ -136,9 +165,17 @@ def restore_vm_snap(vm_index, snap_name):
     print("Success")
     return True
 
+
 def create_vm_snapshot(vm_index, snap_name):
     """
     Create a new snapshot with vm's current state
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
+        snap_name (str): The name of the checkpoint to be created
+
+    Returns:
+        bool: True if success
     """
     load_vms()
 
@@ -155,9 +192,13 @@ def create_vm_snapshot(vm_index, snap_name):
     print("Success")
     return True
 
+
 def get_vm(vm_index):
     """
     Gets vm info by index
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
     """
     load_vms()
 
@@ -173,9 +214,13 @@ def get_vm(vm_index):
     vm_json = json.loads(rs.std_out.decode('utf-8'))
     return vm_json
 
+
 def stop_vm(vm_index):
     """
     Stop virtual machine
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
     """
     load_vms()
 
@@ -186,15 +231,19 @@ def stop_vm(vm_index):
     rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:
-        print( rs.std_err)
+        print(rs.std_err)
         return False
 
     print("Success")
     return True
 
+
 def start_vm(vm_index):
     """
     Start virtual machine
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
     """
     load_vms()
 
@@ -211,7 +260,14 @@ def start_vm(vm_index):
     print("Success")
     return True
 
+
 def setup(configp):
+    """
+    Setup hvclient globals and create protocol with server host and credentials
+
+    Args:
+        configp (dict): Configuration from config file
+    """
     global config
     global server
     global vms_cache_filename
@@ -225,21 +281,42 @@ def setup(configp):
     vms_cache_filename = config['cache_file']
 
     server = Protocol(endpoint='http://{0}:5985/wsman'.format(host),
-                 transport='ntlm',
-                 username='{0}\{1}'.format(domain,user),
-                 password=passw,
-                 server_cert_validation='ignore')
+                      transport='ntlm',
+                      username='{0}\{1}'.format(domain, user),
+                      password=passw,
+                      server_cert_validation='ignore')
+
 
 def run_ps(ps, proto):
+    """
+    Run powershell script on target machine
+
+    Args:
+        ps (str): Powershell script to run
+        proto (Protocol): Protocol containing target machine
+
+    Returns:
+        Response: Object containing stderr, stdout and exit_status
+    """
     encoded_ps = b64encode(ps.encode('utf_16_le')).decode('ascii')
     rs = run_cmd('powershell -encodedcommand {0}'.format(encoded_ps), proto)
     return rs
 
+
 def run_cmd(cmd, proto):
+    """
+    Run batch script on target machine
+
+    Args:
+        cmd (str): batch script to run
+        proto (Protocol): Protocol containing target machine
+
+    Returns:
+        Response: Object containing stderr, stdout and exit_status
+    """
     shell_id = proto.open_shell()
     command_id = proto.run_command(shell_id, cmd)
     rs = Response(proto.get_command_output(shell_id, command_id))
     proto.cleanup_command(shell_id, command_id)
     proto.close_shell(shell_id)
     return rs
-
