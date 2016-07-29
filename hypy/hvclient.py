@@ -73,6 +73,11 @@ def update_cache(force=False):
             return False
 
         vms_json = json.loads(rs.std_out.decode('utf-8'))
+
+        # If there is only one vm, make it a list
+        if type(vms_json) is dict:
+            vms_json = [ vms_json ]
+
         with open(vms_cache_filename, 'w') as vms_cache_file:
             json.dump(vms_json, vms_cache_file, indent=4)
 
@@ -130,8 +135,10 @@ def list_vm_snaps(vm_index):
         return False
 
     snaps_json = json.loads(rs.std_out.decode('utf-8'))
+
+    # If there is only one snap, make it a list
     if type(snaps_json) is dict:
-        snaps_json = [snaps_json]
+        snaps_json = [ snaps_json ]
 
     print("-- Virtual Machine Snapshots --")
     print("{0} {1}".format("Name".ljust(20), "Parent".ljust(20)))
