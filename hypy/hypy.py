@@ -70,11 +70,8 @@ def load_config():
 
     credentials = config['credentials']
 
-    configuration = dict
-    configuration['user'] = credentials['user']
-    configuration['pass'] = credentials['pass']
-    configuration['domain'] = credentials['domain']
-    configuration['host'] = credentials['host']
+    configuration = {'user': credentials['user'], 'pass': credentials['pass'], 'domain': credentials['domain'],
+                     'host': credentials['host']}
 
     options = config['options']
 
