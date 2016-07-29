@@ -1,5 +1,5 @@
 # HYPY - HYper-v in PYthon
-Multiplataform Hyper-V Manager using Python and freeRDP
+Multiplataform Hyper-V Manager using Python and FreeRDP
 
 ## How to HYPY woks?
 
@@ -20,6 +20,6 @@ sync_interval = <interval in hours to make new cache file>
 ```
 
 ## usage
-```python
-
+```bash
+hypy.py --help for details
 ```

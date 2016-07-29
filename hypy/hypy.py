@@ -9,8 +9,7 @@ import configparser
 @click.group()
 def main():
     """
-    Main click group
-    The click functions below wrappers calls to hvclient
+    Multiplataform Hyper-V Manager using Python and FreeRDP
     """
     pass
 
@@ -42,7 +41,7 @@ def create(index, snap_name):
     hvclient.create_vm_snapshot(int(index), snap_name)
 
 
-@main.command(help='Connect to virtual machine identified by index')
+@main.command(help="Connect to virtual machine identified by index")
 @click.argument('index')
 def connect(index):
     hvclient.connect(int(index))
