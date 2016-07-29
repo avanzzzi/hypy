@@ -181,7 +181,7 @@ def remove_vm_snapshot(vm_index, snap_name, recursive=False):
         vm_index (int): The machine's index generated in the current cache
         snap_name (str): The name of the checkpoint to be deleted
         recursive (bool, optional): Specifies that the checkpoint’s children are to be
-            deleted along with the checkpoint 
+            deleted along with the checkpoint
 
     Returns:
         bool: True if success
@@ -256,19 +256,22 @@ def get_vm(vm_index):
     return vm_json
 
 
-def stop_vm(vm_index):
+def stop_vm(vm_index, force=False):
     """
     Stop virtual machine
 
     Args:
         vm_index (int): The machine's index generated in the current cache
+        force (bool): Whether should force shutdown or not
     """
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-    ps_script = "Stop-VM {0}".format(vm_name)
+    ps_script = "Stop-VM -Name {}".format(vm_name)
+    if force:
+        ps_script += " -Force"
 
-    print('Stopping VM "{0}"'.format(vm_name))
+    print('Stopping VM "{}", force: {}'.format(vm_name, force))
     rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:

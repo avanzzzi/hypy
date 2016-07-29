@@ -63,8 +63,9 @@ def start(index):
 
 @main.command(help='Stop virtual machine identified by index')
 @click.argument('index')
-def stop(index):
-    hvclient.stop_vm(int(index))
+@click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest five minutes to save data, then forces a shutdown')
+def stop(index, force):
+    hvclient.stop_vm(int(index), force)
 
 
 def load_config():
@@ -86,6 +87,7 @@ def load_config():
     configuration['sync_interval'] = options['sync_interval']
 
     hvclient.setup(configuration)
+
 
 if __name__ == "__main__":
     load_config()
