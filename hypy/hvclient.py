@@ -108,7 +108,7 @@ def list_vms():
     print("-- Hyper-V Virtual Machine Listing --")
     for vm in vms:
         # print("[{0}] {1} {2} {3}".format(vms.index(vm), states[vm['State']], vm['Name'], vm['Id']))
-        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), states[vm['St/home/gabrielate']], vm['Name']))
+        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), states[vm['State']], vm['Name']))
 
 
 def list_vm_snaps(vm_index):

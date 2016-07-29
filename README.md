@@ -21,5 +21,5 @@ sync_interval = <interval in hours to make new cache file>
 
 ## usage
 ```bash
-hypy.py --help for details
+hypy.py --help
 ```
