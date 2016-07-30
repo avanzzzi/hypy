@@ -73,20 +73,25 @@ def load_config():
     Read config file and sends the resultant dict to setup hvclient
     TODO: Validate options
     """
-    config = configparser.ConfigParser()
-    config.read('hypy.conf')
+    try:
+        config = configparser.ConfigParser()
+        config.read('hypy.conf')
 
-    credentials = config['credentials']
+        credentials = config['credentials']
 
-    configuration = {'user': credentials['user'], 'pass': credentials['pass'], 'domain': credentials['domain'],
-                     'host': credentials['host']}
+        configuration = {'user': credentials['user'], 'pass': credentials['pass'], 'domain': credentials['domain'],
+                         'host': credentials['host']}
 
-    options = config['options']
+        options = config['options']
 
-    configuration['cache_file'] = options['cache_file']
-    configuration['sync_interval'] = options['sync_interval']
+        configuration['cache_file'] = options['cache_file']
+        configuration['sync_interval'] = options['sync_interval']
 
-    hvclient.setup(configuration)
+        hvclient.setup(configuration)
+
+    except KeyError:
+        print ("\n Please, configure your credentials file - hypy.conf")
+        exit()
 
 
 if __name__ == "__main__":

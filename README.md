@@ -1,9 +1,9 @@
 # HYPY - HYper-v in PYthon
 Multiplataform Hyper-V Manager using Python and FreeRDP
 
-## How to HYPY woks?
+## How HYPY works?
 
-Hypy uses winrm to comunicate with hyper-v server shell and sends powershell commands to interact with the virtual machines. Using Powershell HYPY can get Name, ID and state of virtual machines. Therefore, HYPY call freeRDP with vm-id and credentials, using settings in the file `.conf` to connect to vm.
+Hypy uses winrm to comunicate with hyper-v server shell and sends powershell commands to interact with the virtual machines. Using Powershell, HYPY can get Name, ID and state of virtual machines. Therefore, HYPY call freeRDP with vm-id and credentials, using settings in `.conf` file to connect the vm.
 
 ## Configuration
 to configure the Hypy you must change the file 'hypy.conf'
