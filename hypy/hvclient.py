@@ -40,12 +40,20 @@ def connect(index):
         start_vm(index)
         time.sleep(2)
 
-    cmd = ['xfreerdp', '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user),
+    if os.uname()[0] == "Linux":
+        freerdp_bin = "xfreerdp"
+    elif os.name()[0] == "nt":
+        freerdp_bin = "wfreerdp.exe"
+
+    cmd = [freerdp_bin, '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user),
            '/p:{0}'.format(passw),
            '/t:{} [{}] {}'.format(host, index, vm_info['Name']), '/cert-ignore']
 
     # print(cmd)
-    subprocess.Popen(cmd)
+    try:
+        subprocess.Popen(cmd)
+    except FileNotFoundError:
+        print("{} not found in PATH".format(freerdp_bin))
     # retval = p.wait()
 
 
