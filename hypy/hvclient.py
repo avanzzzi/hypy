@@ -58,7 +58,22 @@ def connect(index):
     # retval = p.wait()
 
 
-def update_cache(force=False):
+def update_cache(index, new_state):
+    """
+    Update machine state on cache by index
+    Called after start, stop, pause and resume operations
+
+    Args:
+        index (int): machine index in current cache
+        new_state (int): represented by states dict
+    """
+    vms[index]['State'] = new_state
+    
+    with open(vms_cache_filename, 'w') as vms_cache_file:
+        json.dump(vms, vms_cache_file, indent=4)
+
+
+def update_all_cache(force=False):
     """
     Checks cache file modification time and update vm list
     Creates cache file if nonexistent
@@ -286,7 +301,8 @@ def stop_vm(vm_index, force=False):
     if rs.status_code != 0:
         print(rs.std_err)
         return False
-
+    
+    update_cache(vm_index, 3)
     print("Success")
     return True
 
@@ -310,6 +326,7 @@ def start_vm(vm_index):
         print(rs.std_err)
         return False
 
+    update_cache(vm_index, 2) 
     print("Success")
     return True
 

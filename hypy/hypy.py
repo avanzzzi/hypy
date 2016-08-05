@@ -17,7 +17,7 @@ def main():
 @main.command(help='List virtual machines and its indexes')
 @click.option('--sync', '-s', is_flag=True, help='Syncronize with server updating local cache')
 def list(sync):
-    hvclient.update_cache(sync)
+    hvclient.update_all_cache(sync)
     hvclient.list_vms()
 
 
