@@ -20,7 +20,7 @@ sync_interval = <interval in hours to make new cache file>
 ```
 
 ## usage
-If you want use any functions and don't know parameters, you can use `hypy.py --help`
+If you don't know how to use hypy, you can use `hypy.py --help`
 ```
 hypy.py --help
 Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
@@ -40,6 +40,17 @@ Commands:
   start    Start virtual machine identified by index
   stop     Stop virtual machine identified by index
 
+```
+If you need help on any subcommand, run `hypy.py COMMAND --help`
+```
+hypy.py list --help
+Usage: hypy.py list [OPTIONS]
+
+  List virtual machines and its indexes
+
+Options:
+  -s, --sync  Syncronize with server updating local cache
+  --help      Show this message and exit.
 ```
 
 ### list
