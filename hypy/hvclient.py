@@ -52,7 +52,8 @@ def connect(index):
 
     # print(cmd)
     try:
-        subprocess.Popen(cmd)
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        #subprocess.Popen(cmd)
     except FileNotFoundError:
         print("{} not found in PATH".format(freerdp_bin))
     # retval = p.wait()
@@ -68,7 +69,7 @@ def update_cache(index, new_state):
         new_state (int): represented by states dict
     """
     vms[index]['State'] = new_state
-    
+
     with open(vms_cache_filename, 'w') as vms_cache_file:
         json.dump(vms, vms_cache_file, indent=4)
 
@@ -301,7 +302,7 @@ def stop_vm(vm_index, force=False):
     if rs.status_code != 0:
         print(rs.std_err)
         return False
-    
+
     update_cache(vm_index, 3)
     print("Success")
     return True
@@ -326,7 +327,7 @@ def start_vm(vm_index):
         print(rs.std_err)
         return False
 
-    update_cache(vm_index, 2) 
+    update_cache(vm_index, 2)
     print("Success")
     return True
 
