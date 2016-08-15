@@ -166,9 +166,9 @@ def list_vm_snaps(vm_index):
         snaps_json = [ snaps_json ]
 
     print("-- Virtual Machine Snapshots --")
-    print("{0} {1}".format("Name".ljust(20), "Parent".ljust(20)))
+    print("{0} {1}".format("Name".ljust(30), "Parent".ljust(30)))
     for snap in snaps_json:
-        print("{0} {1}".format(str(snap['Name']).ljust(20), str(snap['ParentSnapshotName']).ljust(20)))
+        print("{0} {1}".format(str(snap['Name']).ljust(30), str(snap['ParentSnapshotName']).ljust(30)))
 
 
 def restore_vm_snap(vm_index, snap_name):
