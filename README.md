@@ -2,11 +2,19 @@
 Multiplataform Hyper-V Manager using Python and FreeRDP
 
 ## How HYPY works?
-
 Hypy uses winrm to comunicate with hyper-v server shell and sends powershell commands to interact with the virtual machines. Using Powershell, HYPY can get Name, ID and state of virtual machines. Therefore, HYPY call freeRDP with vm-id and credentials, using settings in `.conf` file to connect the vm.
 
+## Pre-requisites
+### WinRM
+Hypy uses winrm to communicate with the hyper-v host, so it must be enabled and accepting connections.
+https://github.com/diyan/pywinrm has a session explaining how to Enable WinRM on the remote host.
+
+### FreeRDP
+FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is working before using hypy or it will not open the session to the virtual machine.
+If you are using Linux, you package manager should have freerdp avaiable or look into https://github.com/FreeRDP/FreeRDP for install instructions.
+
 ## Configuration
-to configure the Hypy you must change the file 'hypy.conf'
+To configure Hypy, change the file 'hypy.conf'
 ```ini
 [credentials]
 host = <server name in domain>
@@ -18,12 +26,13 @@ pass = <password>
 cache_file = <name of cache file>
 sync_interval = <interval in hours to make new cache file>
 ```
+You must have write permissions to the path pointed by cache_file
 
 ## usage
 If you don't know how to use hypy, you can use `hypy.py --help`
 ```
 hypy.py --help
-Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
+  Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
 
   Multiplataform Hyper-V Manager using Python and FreeRDP
 
@@ -35,13 +44,16 @@ Commands:
   create   Create a new snapshot with vm's current state
   delete   Delete a machine's snapshot by name
   list     List virtual machines and its indexes
+  pause    Pause virtual machine identified by index
   restore  Restore virtual machine snapshot
+  resume   Resume (paused) virtual machine identified by...
   snaps    List virtual machine snapshots
   start    Start virtual machine identified by index
   stop     Stop virtual machine identified by index
-
 ```
 If you need help on any subcommand, run `hypy.py COMMAND --help`
+
+### list
 ```
 hypy.py list --help
 Usage: hypy.py list [OPTIONS]
@@ -52,9 +64,11 @@ Options:
   -s, --sync  Syncronize with server updating local cache
   --help      Show this message and exit.
 ```
+Hypy will create a cache with indexes for each machine. These indexes are used by other hypy commands to interact with the virtual machines.
+If your cache is older than the duration specified in sync_interval, a new cache will be created, so the machine's states will be updated.
+To force an cache update use the sync parameter.
 
-### list
-Now you know the parameters. For simulate the simple usage the first option is list: `hypy.py list` and Hypy list to you a machines for number:
+A machine listing would look like this:
 ```
 [01]    Machine 01
 [02]    Machine 02
@@ -67,37 +81,93 @@ Now you know the parameters. For simulate the simple usage the first option is l
 [09]    Machine 09
 [10]    Machine 10
 ```
-
-The cache relates to 'list' option are saved in 'cache_file' and syncronize in fixed 'sync_interval' parameter.
-
-for generate a new list before the sync_interval are a `-s` parameter.
-
-example:
-`./hypy.py list -s`
-
 ### connect
+```
+hypy connect --help
+Usage: hypy.py connect [OPTIONS] INDEX
 
-    ./hypy.py connect <number_of_list>
+  Connect to virtual machine identified by index
+```
 ### create
+```
+hypy create --help
+Usage: hypy.py create [OPTIONS] INDEX SNAP_NAME
 
-    ./hypy.py create <number_of_list> <"name_of_snap">
+Options:
+  --help  Show this message and exit.
+
+  Create a new snapshot with vm's current state
+```
 ### delete
-If you needs delete a specific snapshop:
+```
+hypy delete --help
+Usage: hypy.py delete [OPTIONS] INDEX SNAP_NAME
 
-    ./hypy.py delete <number_of_list> <"name_of_snap">
+  Delete a machine's snapshot by name
 
-if you need delete a snap trees:
-
-    ./hypy.py delete -r <number_of_list> <"name_of_main_snap">
+Options:
+  -r      Remove snapshot's children as well
+  --help  Show this message and exit.
+```
 ### restore
+```
+hypy restore --help
+Usage: hypy.py restore [OPTIONS] INDEX SNAP_NAME
 
-    ./hypy.py restore <number_of_list> <"name_of_snap">
+  Restore virtual machine snapshot
+
+Options:
+  --help  Show this message and exit.
+```
 ### snaps
+```
+hypy snaps --help
+Usage: hypy.py snaps [OPTIONS] INDEX
 
-    ./hypy.py snaps <number_of_list>
+  List virtual machine snapshots
+
+Options:
+  --help  Show this message and exit
+```
 ### start
+```
+hypy start --help
+Usage: hypy.py start [OPTIONS] INDEX
 
-    ./hypy.py start <number_of_list>
+  Start virtual machine identified by index
+
+Options:
+  --help  Show this message and exit.
+```
 ### stop
+```
+hypy stop --help
+Usage: hypy.py stop [OPTIONS] INDEX
 
-    ./hypy.py stop <number_of_list>
+  Stop virtual machine identified by index
+
+Options:
+  -f, --force  Hyper-V gives the guest five minutes to save data, then forces
+               a shutdown
+  --help       Show this message and exit.
+```
+### pause
+```
+hypy pause --help
+Usage: hypy.py pause [OPTIONS] INDEX
+
+  Pause virtual machine identified by index
+
+Options:
+  --help  Show this message and exit.
+```
+### resume
+```
+    hypy resume --help
+Usage: hypy.py resume [OPTIONS] INDEX
+
+  Resume (paused) virtual machine identified by index
+
+Options:
+  --help  Show this message and exit.
+```
