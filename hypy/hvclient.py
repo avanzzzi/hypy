@@ -37,7 +37,7 @@ def connect(index):
     host = config['host']
 
     vm_info = get_vm(index)
-    if vm_info != '' and vm_info['State'] != 2:
+    if vm_info != '' and vm_info['State'] == 3:
         start_vm(index)
         time.sleep(2)
 
@@ -137,8 +137,8 @@ def list_vms():
     # Listing
     print("-- Hyper-V Virtual Machine Listing --")
     for vm in vms:
-        # print("[{0}] {1} {2} {3}".format(vms.index(vm), states[vm['State']], vm['Name'], vm['Id']))
-        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), states[vm['State']], vm['Name']))
+        state = states.get(vm['State'], "unknown")
+        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), state, vm['Name']))
 
 
 def list_vm_snaps(vm_index):
@@ -304,6 +304,54 @@ def stop_vm(vm_index, force=False):
         return False
 
     update_cache(vm_index, 3)
+    print("Success")
+    return True
+
+
+def resume_vm(vm_index):
+    """
+    Resume (paused) virtual machine
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
+    """
+    load_vms()
+
+    vm_name = vms[vm_index]['Name']
+    ps_script = "Resume-VM -Name {0}".format(vm_name)
+
+    print('Resuming VM "{0}"'.format(vm_name))
+    rs = run_ps(ps_script, server)
+
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return False
+
+    update_cache(vm_index, 2)
+    print("Success")
+    return True
+
+
+def pause_vm(vm_index):
+    """
+    Pause virtual machine
+
+    Args:
+        vm_index (int): The machine's index generated in the current cache
+    """
+    load_vms()
+
+    vm_name = vms[vm_index]['Name']
+    ps_script = "Suspend-VM -Name {0}".format(vm_name)
+
+    print('Pausing VM "{0}"'.format(vm_name))
+    rs = run_ps(ps_script, server)
+
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return False
+
+    update_cache(vm_index, 9)
     print("Success")
     return True
 

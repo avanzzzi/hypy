@@ -61,6 +61,18 @@ def start(index):
     hvclient.start_vm(int(index))
 
 
+@main.command(help='Pause virtual machine identified by index')
+@click.argument('index')
+def pause(index):
+    hvclient.pause_vm(int(index))
+
+
+@main.command(help='Resume (paused) virtual machine identified by index')
+@click.argument('index')
+def resume(index):
+    hvclient.resume_vm(int(index))
+
+
 @main.command(help='Stop virtual machine identified by index')
 @click.argument('index')
 @click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest five minutes to save data, then forces a shutdown')
