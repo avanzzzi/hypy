@@ -87,16 +87,19 @@ hypy connect --help
 Usage: hypy.py connect [OPTIONS] INDEX
 
   Connect to virtual machine identified by index
+
+Options:
+  --help  Show this message and exit.
 ```
 ### create
 ```
 hypy create --help
 Usage: hypy.py create [OPTIONS] INDEX SNAP_NAME
 
+  Create a new snapshot with vm's current state
+
 Options:
   --help  Show this message and exit.
-
-  Create a new snapshot with vm's current state
 ```
 ### delete
 ```
@@ -163,7 +166,7 @@ Options:
 ```
 ### resume
 ```
-    hypy resume --help
+hypy resume --help
 Usage: hypy.py resume [OPTIONS] INDEX
 
   Resume (paused) virtual machine identified by index

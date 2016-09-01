@@ -11,15 +11,16 @@ import json
 import os.path
 import time
 import platform
+import re
 
 vms = None
 server = None
 config = None
 vms_cache_filename = None
-states = {3: 'off    ',
+states = {3: 'off',
           2: 'running',
-          9: 'paused ',
-          6: 'saved  '}
+          9: 'paused',
+          6: 'saved'}
 
 
 def connect(index):
@@ -90,7 +91,7 @@ def update_all_cache(force=False):
         modified = datetime.fromtimestamp(os.path.getmtime(vms_cache_filename))
 
     if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
-        ps_script = "Get-VM * | Select Name,Id,State | ConvertTo-Json"
+        ps_script = "Get-VM * | Select Name,Id,State,Uptime | ConvertTo-Json"
         rs = run_ps(ps_script, server)
 
         if rs.status_code != 0:
@@ -136,9 +137,17 @@ def list_vms():
 
     # Listing
     print("-- Hyper-V Virtual Machine Listing --")
+
+    # Header
+    print("{0} {1} {2} {3}".format("Index".rjust(5), "State".ljust(7), "Name".ljust(30), "Uptime (Hours)"))
+
+    # Listing
     for vm in vms:
-        state = states.get(vm['State'], "unknown")
-        print("[{0}] {1} {2}".format(str(vms.index(vm)).rjust(3), state, vm['Name']))
+        index = str(vms.index(vm)).rjust(3)
+        state = states.get(vm['State'], "unknown").ljust(7)
+        name = str(vm['Name']).ljust(30)
+        uptime = str(vm['Uptime']['TotalHours'])[:7]
+        print("[{0}] {1} {2} {3}".format(index, state, name, uptime))
 
 
 def list_vm_snaps(vm_index):
@@ -151,7 +160,7 @@ def list_vm_snaps(vm_index):
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-    ps_script = "Get-VM {0} | Get-VMSnapshot | Select Name,ParentSnapshotName | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,CreationTime | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script, server)
 
@@ -166,9 +175,12 @@ def list_vm_snaps(vm_index):
         snaps_json = [ snaps_json ]
 
     print("-- Virtual Machine Snapshots --")
-    print("{0} {1}".format("Name".ljust(30), "Parent".ljust(30)))
+    print("{0} {1} {2}".format("Name".ljust(30), "Parent".ljust(30), "CreationTime"))
     for snap in snaps_json:
-        print("{0} {1}".format(str(snap['Name']).ljust(30), str(snap['ParentSnapshotName']).ljust(30)))
+        snapname = str(snap['Name']).ljust(30)
+        parent = str(snap['ParentSnapshotName']).ljust(30)
+        creation = datetime.fromtimestamp(float(re.search("[0-9]+", snap['CreationTime']).group())/1000.0)
+        print("{0} {1} {2}".format(snapname, parent, creation.strftime("%d/%m/%Y %H:%M:%S")))
 
 
 def restore_vm_snap(vm_index, snap_name):
@@ -270,7 +282,7 @@ def get_vm(vm_index):
 
     vm_name = vms[vm_index]['Name']
 
-    ps_script = "Get-VM {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VM -Name {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
     rs = run_ps(ps_script, server)
 
     if rs.status_code != 0:
@@ -366,7 +378,7 @@ def start_vm(vm_index):
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-    ps_script = "Start-VM {0}".format(vm_name)
+    ps_script = "Start-VM -Name {0}".format(vm_name)
 
     print('Starting VM "{0}"'.format(vm_name))
     rs = run_ps(ps_script, server)
