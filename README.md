@@ -70,16 +70,19 @@ To force an cache update use the sync parameter.
 
 A machine listing would look like this:
 ```
-[01]    Machine 01
-[02]    Machine 02
-[03]    Machine 03
-[04]    Machine 04
-[05]    Machine 05
-[06]    Machine 06
-[07]    Machine 07
-[08]    Machine 08
-[09]    Machine 09
-[10]    Machine 10
+-- Hyper-V Virtual Machine Listing --
+Index State   Name                           Uptime
+[  0] saved   MACHINE 001                    0:00:00
+[  1] saved   MACHINE 002                    0:00:00
+[  2] running MACHINE 003                    1:23:46
+[  3] running MACHINE 004                    9:01:33
+[  4] paused  MACHINE 005                    34 days, 17:58:52
+[  5] off     MACHINE 006                    0:00:00
+[  6] running MACHINE 007                    23 days, 0:46:56
+[  7] running MACHINE 008                    0:18:43
+[  8] running MACHINE 009                    4 days, 2:16:29
+[  9] off     MACHINE 010                    0:00:00
+[ 10] off     MACHINE 011                    0:00:00
 ```
 ### connect
 ```
