@@ -38,7 +38,7 @@ def connect(index):
     host = config['host']
 
     vm_info = get_vm(index)
-    if vm_info != '' and vm_info['State'] == 3:
+    if vm_info != '' and vm_info['State'] != 2 and vm_info['State'] != 9:
         start_vm(index)
         time.sleep(2)
 
@@ -139,14 +139,14 @@ def list_vms():
     print("-- Hyper-V Virtual Machine Listing --")
 
     # Header
-    print("{0} {1} {2} {3}".format("Index".rjust(5), "State".ljust(7), "Name".ljust(30), "Uptime (Hours)"))
+    print("{0} {1} {2} {3}".format("Index".rjust(5), "State".ljust(7), "Name".ljust(30), "Uptime"))
 
     # Listing
     for vm in vms:
         index = str(vms.index(vm)).rjust(3)
         state = states.get(vm['State'], "unknown").ljust(7)
         name = str(vm['Name']).ljust(30)
-        uptime = str(vm['Uptime']['TotalHours'])[:7]
+        uptime = str(timedelta(hours=vm['Uptime']['TotalHours']))
         print("[{0}] {1} {2} {3}".format(index, state, name, uptime))
 
 
@@ -168,7 +168,11 @@ def list_vm_snaps(vm_index):
         print(rs.std_err)
         return False
 
-    snaps_json = json.loads(rs.std_out.decode('utf-8'))
+    try:
+        snaps_json = json.loads(rs.std_out.decode('utf-8'))
+    except:
+        print("Virtual Machine {} has no snapshots".format(vm_name))
+        return
 
     # If there is only one snap, make it a list
     if type(snaps_json) is dict:
