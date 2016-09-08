@@ -98,7 +98,7 @@ def update_all_cache(force=False):
             print(rs.std_err)
             return False
 
-        vms_json = json.loads(rs.std_out.decode('utf-8'))
+        vms_json = json.loads(rs.std_out.decode('latin-1'))
 
         # If there is only one vm, make it a list
         if type(vms_json) is dict:
@@ -169,9 +169,9 @@ def list_vm_snaps(vm_index):
         return False
 
     try:
-        snaps_json = json.loads(rs.std_out.decode('utf-8'))
-    except:
-        print("Virtual Machine {} has no snapshots".format(vm_name))
+        snaps_json = json.loads(rs.std_out.decode('latin-1'))
+    except Exception as e:
+        print("Virtual Machine {} has no snapshots: {}".format(vm_name, e))
         return
 
     # If there is only one snap, make it a list
@@ -293,7 +293,7 @@ def get_vm(vm_index):
         print(rs.std_err)
         return
 
-    vm_json = json.loads(rs.std_out.decode('utf-8'))
+    vm_json = json.loads(rs.std_out.decode('latin-1'))
     return vm_json
 
 
