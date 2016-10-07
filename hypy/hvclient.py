@@ -40,7 +40,7 @@ def connect(index):
     vm_info = get_vm(index)
     if vm_info != '' and vm_info['State'] != 2 and vm_info['State'] != 9:
         start_vm(index)
-        time.sleep(2)
+        time.sleep(10)
 
     if platform.uname()[0] == "Linux":
         freerdp_bin = "xfreerdp"
