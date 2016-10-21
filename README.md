@@ -11,7 +11,12 @@ https://github.com/diyan/pywinrm has a session explaining how to Enable WinRM on
 
 ### FreeRDP
 FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is working before using hypy or it will not open the session to the virtual machine.
-If you are using Linux, you package manager should have freerdp avaiable or look into https://github.com/FreeRDP/FreeRDP for install instructions.
+
+#### Linux: Your package manager should have freerdp 1.1.* avaiable or compile from source.
+#### Mac: When using homebrew, make share to include --HEAD option to get the lastest version (1.1.*) with HyperV support or use macports. Either way you will need XCode installed.
+
+Look into https://github.com/FreeRDP/FreeRDP for more instructions.
+
 
 ## Configuration
 To configure Hypy, change the file 'hypy.conf'
