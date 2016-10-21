@@ -42,10 +42,10 @@ def connect(index):
         start_vm(index)
         time.sleep(10)
 
-    if platform.uname()[0] == "Linux":
-        freerdp_bin = "xfreerdp"
-    elif platform.uname()[0] == "Windows":
+    if platform.uname()[0] == "Windows":
         freerdp_bin = "wfreerdp.exe"
+    else:
+        freerdp_bin = "xfreerdp"
 
     cmd = [freerdp_bin, '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user),
            '/p:{0}'.format(passw),
