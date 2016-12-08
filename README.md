@@ -24,8 +24,8 @@ To configure Hypy, change the file 'hypy.conf'
 [credentials]
 host = <server name in domain>
 domain = <domain name>
-user = <user name in server>
-pass = <password>
+user = <user name in server> (base64 format)
+pass = <password> (base64 format)
 
 [options]
 cache_file = <name of cache file>
