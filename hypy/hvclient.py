@@ -91,7 +91,7 @@ def update_all_cache(force=False):
         modified = datetime.fromtimestamp(os.path.getmtime(vms_cache_filename))
 
     if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
-        ps_script = "Get-VM * | Select Name,Id,State,Uptime | ConvertTo-Json"
+        ps_script = "Get-VM * | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json"
         rs = run_ps(ps_script, server)
 
         if rs.status_code != 0:
