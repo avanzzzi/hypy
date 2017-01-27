@@ -1,4 +1,7 @@
 # HYPY - HYper-v in PYthon
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2d6d147eedc0403195262e6041537eb3)](https://www.codacy.com/app/avanzzzi/hypy?utm_source=github.com&utm_medium=referral&utm_content=avanzzzi/hypy&utm_campaign=badger)
+
 Multiplataform Hyper-V Manager using Python and FreeRDP
 
 ## How HYPY works?
