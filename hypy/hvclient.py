@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-from winrm import Protocol
-from winrm import Response
-from base64 import b64encode
-from datetime import datetime
-from datetime import timedelta
-import subprocess
 import json
 import os.path
 import time
 import platform
 import re
+from subprocess import Popen, DEVNULL
+from winrm import Protocol
+from winrm import Response
+from base64 import b64encode
+from datetime import datetime
+from datetime import timedelta
 
 vms = None
 server = None
@@ -54,14 +54,10 @@ def connect(index):
                         '/t:{} [{}] {}'.format(host, index, vm_info['Name']),
                         '/cert-ignore']
 
-    # print(cmd)
     try:
-        subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL)
-        # subprocess.Popen(cmd)
-    except FileNotFoundError:
-        print("{} not found in PATH".format(freerdp_bin))
-    # retval = p.wait()
+        Popen(cmd, stdout=DEVNULL, stderr=DEVNULL, shell=True)
+    except FileNotFoundError as err:
+        print("{} not found in PATH\n{}".format(freerdp_bin, err))
 
 
 def update_cache(index, new_state):
@@ -105,7 +101,7 @@ def update_all_cache(force=False):
         vms_json = json.loads(rs.std_out.decode('latin-1'))
 
         # If there is only one vm, make it a list
-        if type(vms_json) is dict:
+        if isinstance(vms_json, dict):
             vms_json = [vms_json]
 
         with open(vms_cache_filename, 'w') as vms_cache_file:
@@ -183,7 +179,7 @@ def list_vm_snaps(vm_index):
         return
 
     # If there is only one snap, make it a list
-    if type(snaps_json) is dict:
+    if isinstance(snaps_json, dict):
         snaps_json = [snaps_json]
 
     print("-- Virtual Machine Snapshots --")
