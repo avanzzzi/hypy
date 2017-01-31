@@ -55,7 +55,7 @@ def connect(index):
                         '/cert-ignore']
 
     try:
-        Popen(cmd, stdout=DEVNULL, stderr=DEVNULL, shell=True)
+        Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
     except FileNotFoundError as err:
         print("{} not found in PATH\n{}".format(freerdp_bin, err))
 
