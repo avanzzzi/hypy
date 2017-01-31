@@ -47,14 +47,18 @@ def connect(index):
     else:
         freerdp_bin = "xfreerdp"
 
-    cmd = [freerdp_bin, '/v:{0}'.format(host), '/vmconnect:{0}'.format(vm_id), '/u:{0}'.format(user),
-           '/p:{0}'.format(passw),
-           '/t:{} [{}] {}'.format(host, index, vm_info['Name']), '/cert-ignore']
+    cmd = [freerdp_bin, '/v:{0}'.format(host),
+                        '/vmconnect:{0}'.format(vm_id),
+                        '/u:{0}'.format(user),
+                        '/p:{0}'.format(passw),
+                        '/t:{} [{}] {}'.format(host, index, vm_info['Name']),
+                        '/cert-ignore']
 
     # print(cmd)
     try:
-        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        #subprocess.Popen(cmd)
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL)
+        # subprocess.Popen(cmd)
     except FileNotFoundError:
         print("{} not found in PATH".format(freerdp_bin))
     # retval = p.wait()
@@ -102,7 +106,7 @@ def update_all_cache(force=False):
 
         # If there is only one vm, make it a list
         if type(vms_json) is dict:
-            vms_json = [ vms_json ]
+            vms_json = [vms_json]
 
         with open(vms_cache_filename, 'w') as vms_cache_file:
             json.dump(vms_json, vms_cache_file, indent=4)
@@ -139,7 +143,10 @@ def list_vms():
     print("-- Hyper-V Virtual Machine Listing --")
 
     # Header
-    print("{0} {1} {2} {3}".format("Index".rjust(5), "State".ljust(7), "Name".ljust(30), "Uptime"))
+    print("{0} {1} {2} {3}".format("Index".rjust(5),
+                                   "State".ljust(7),
+                                   "Name".ljust(30),
+                                   "Uptime"))
 
     # Listing
     for vm in vms:
@@ -160,7 +167,8 @@ def list_vm_snaps(vm_index):
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-    ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,CreationTime | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,\
+ CreationTime | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script, server)
 
@@ -176,7 +184,7 @@ def list_vm_snaps(vm_index):
 
     # If there is only one snap, make it a list
     if type(snaps_json) is dict:
-        snaps_json = [ snaps_json ]
+        snaps_json = [snaps_json]
 
     print("-- Virtual Machine Snapshots --")
     print("{0} {1} {2}".format("Name".ljust(30), "Parent".ljust(30), "CreationTime"))
@@ -184,7 +192,8 @@ def list_vm_snaps(vm_index):
         snapname = str(snap['Name']).ljust(30)
         parent = str(snap['ParentSnapshotName']).ljust(30)
         creation = datetime.fromtimestamp(float(re.search("[0-9]+", snap['CreationTime']).group())/1000.0)
-        print("{0} {1} {2}".format(snapname, parent, creation.strftime("%d/%m/%Y %H:%M:%S")))
+        print("{0} {1} {2}".format(snapname, parent,
+              creation.strftime("%d/%m/%Y %H:%M:%S")))
 
 
 def restore_vm_snap(vm_index, snap_name):
@@ -221,8 +230,8 @@ def remove_vm_snapshot(vm_index, snap_name, recursive=False):
     Args:
         vm_index (int): The machine's index generated in the current cache
         snap_name (str): The name of the checkpoint to be deleted
-        recursive (bool, optional): Specifies that the checkpoint’s children are to be
-            deleted along with the checkpoint
+        recursive (bool, optional): Specifies that the checkpoint’s children
+            are to be deleted along with the checkpoint
 
     Returns:
         bool: True if success
@@ -230,7 +239,8 @@ def remove_vm_snapshot(vm_index, snap_name, recursive=False):
     load_vms()
 
     vm_name = vms[vm_index]['Name']
-    ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name, snap_name)
+    ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name,
+                                                                     snap_name)
     if recursive:
         ps_script += " -IncludeAllChildSnapshots"
     ps_script += " -Confirm:$false"

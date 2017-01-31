@@ -14,11 +14,18 @@ def main():
     pass
 
 
-@main.command(help='List virtual machines and its indexes')
-@click.option('--sync', '-s', is_flag=True, help='Syncronize with server updating local cache')
+@main.command("list", help='List virtual machines and its indexes')
+@click.option('--sync', '-s', is_flag=True, help='Syncronize with server\
+ updating local cache')
 def list(sync):
     hvclient.update_all_cache(sync)
     hvclient.list_vms()
+
+
+@main.command("ls", help='List updated virtual machines and its indexes')
+@click.pass_context
+def ls(ctx):
+    ctx.invoke(list, sync=True)
 
 
 @main.command(help='List virtual machine snapshots')
@@ -75,7 +82,8 @@ def resume(index):
 
 @main.command(help='Stop virtual machine identified by index')
 @click.argument('index')
-@click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest five minutes to save data, then forces a shutdown')
+@click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest\
+ five minutes to save data, then forces a shutdown')
 def stop(index, force):
     hvclient.stop_vm(int(index), force)
 
@@ -91,7 +99,9 @@ def load_config():
 
         credentials = config['credentials']
 
-        configuration = {'user': credentials['user'], 'pass': credentials['pass'], 'domain': credentials['domain'],
+        configuration = {'user': credentials['user'],
+                         'pass': credentials['pass'],
+                         'domain': credentials['domain'],
                          'host': credentials['host']}
 
         options = config['options']
@@ -102,8 +112,8 @@ def load_config():
         hvclient.setup(configuration)
 
     except KeyError:
-        print ("\n Please, configure your credentials file - hypy.conf")
-        exit()
+        print("\n Please, configure your credentials file - hypy.conf")
+        exit(1)
 
 
 if __name__ == "__main__":
