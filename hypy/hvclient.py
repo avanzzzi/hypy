@@ -5,13 +5,13 @@ import json
 import os.path
 import time
 import platform
-import re
 from subprocess import Popen, DEVNULL
 from winrm import Protocol
 from winrm import Response
 from base64 import b64encode
 from datetime import datetime
 from datetime import timedelta
+from snaptree import create_tree
 
 vms = None
 server = None
@@ -164,7 +164,7 @@ def list_vm_snaps(vm_index):
 
     vm_name = vms[vm_index]['Name']
     ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,\
- CreationTime | ConvertTo-Json".format(vm_name)
+ CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script, server)
 
@@ -182,14 +182,13 @@ def list_vm_snaps(vm_index):
     if isinstance(snaps_json, dict):
         snaps_json = [snaps_json]
 
+    t_snaps = create_tree(snaps_json, vm_name, f_pid="ParentSnapshotId",
+                          f_id="Id",
+                          f_label="Name",
+                          f_ctime="CreationTime",
+                          v_none=None)
     print("-- Virtual Machine Snapshots --")
-    print("{0} {1} {2}".format("Name".ljust(30), "Parent".ljust(30), "CreationTime"))
-    for snap in snaps_json:
-        snapname = str(snap['Name']).ljust(30)
-        parent = str(snap['ParentSnapshotName']).ljust(30)
-        creation = datetime.fromtimestamp(float(re.search("[0-9]+", snap['CreationTime']).group())/1000.0)
-        print("{0} {1} {2}".format(snapname, parent,
-              creation.strftime("%d/%m/%Y %H:%M:%S")))
+    print(t_snaps)
 
 
 def restore_vm_snap(vm_index, snap_name):
