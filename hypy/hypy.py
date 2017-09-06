@@ -7,11 +7,15 @@ import click
 
 
 @click.group()
-def main():
+@click.option('--user', '-u', help='Username in hyper-v server')
+@click.option('passw', '--pass', '-p', help='Password in hyper-v server')
+@click.option('--domain', '-d', help='Domain name')
+@click.option('--host', '-m', help='Hyper-V server hostname/ip address')
+def main(user, passw, domain, host):
     """
     Multiplataform Hyper-V Manager using Python and FreeRDP
     """
-    pass
+    load_config(user, passw, domain, host)
 
 
 @main.command("list", help='List virtual machines and its indexes')
@@ -88,7 +92,7 @@ def stop(index, force):
     hvclient.stop_vm(int(index), force)
 
 
-def load_config():
+def load_config(user, passw, domain, host):
     """
     Read config file and sends the resultant dict to setup hvclient
     TODO: Validate options
@@ -104,18 +108,27 @@ def load_config():
                          'domain': credentials['domain'],
                          'host': credentials['host']}
 
+        if user is not None:
+            configuration['user'] = user
+        if passw is not None:
+            configuration['pass'] = passw
+        if domain is not None:
+            configuration['domain'] = domain
+        if host is not None:
+            configuration['host'] = host
+
         options = config['options']
 
         configuration['cache_file'] = options['cache_file']
         configuration['sync_interval'] = options['sync_interval']
+        configuration['protocol'] = options['protocol']
 
         hvclient.setup(configuration)
 
     except KeyError:
-        print("\n Please, configure your credentials file - hypy.conf")
+        print("Please, configure your credentials file - hypy.conf")
         exit(1)
 
 
 if __name__ == "__main__":
-    load_config()
     main()
