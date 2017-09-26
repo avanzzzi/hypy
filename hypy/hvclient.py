@@ -452,8 +452,6 @@ def run_cmd_ssh(cmd):
     ssh_client.close()
 
     rs.status_code = 0
-    if rs.std_err is not None:
-        rs.status_code = 1
 
     return rs
 
