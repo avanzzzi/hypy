@@ -6,7 +6,7 @@ import os.path
 import time
 import platform
 from collections import namedtuple
-from paramiko import SSHClient
+from paramiko import SSHClient, AutoAddPolicy
 from subprocess import Popen, DEVNULL
 from winrm import Protocol
 from winrm import Response
@@ -440,6 +440,7 @@ def run_cmd_ssh(cmd):
     """
     ssh_client = SSHClient()
     ssh_client.load_system_host_keys()
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
     ssh_client.connect(username=config['user'],
                        password=config['pass'],
                        hostname=config['host'],
