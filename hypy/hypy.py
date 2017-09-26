@@ -11,11 +11,12 @@ import click
 @click.option('passw', '--pass', '-p', help='Password in hyper-v server')
 @click.option('--domain', '-d', help='Domain name')
 @click.option('--host', '-m', help='Hyper-V server hostname/ip address')
-def main(user, passw, domain, host):
+@click.option('--proto', '-p', help='Protocol to be used: ssh or winrm')
+def main(user, passw, domain, host, proto):
     """
     Multiplataform Hyper-V Manager using Python and FreeRDP
     """
-    load_config(user, passw, domain, host)
+    load_config(user, passw, domain, host, proto)
 
 
 @main.command("list", help='List virtual machines and its indexes')
@@ -92,7 +93,7 @@ def stop(index, force):
     hvclient.stop_vm(int(index), force)
 
 
-def load_config(user, passw, domain, host):
+def load_config(user, passw, domain, host, proto):
     """
     Read config file and sends the resultant dict to setup hvclient
     TODO: Validate options
@@ -122,6 +123,9 @@ def load_config(user, passw, domain, host):
         configuration['cache_file'] = options['cache_file']
         configuration['sync_interval'] = options['sync_interval']
         configuration['protocol'] = options['protocol']
+
+        if proto is not None:
+            configuration['protocol'] = proto
 
         hvclient.setup(configuration)
 

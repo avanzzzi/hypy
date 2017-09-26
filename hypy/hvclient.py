@@ -5,6 +5,8 @@ import json
 import os.path
 import time
 import platform
+from collections import namedtuple
+from paramiko import SSHClient
 from subprocess import Popen, DEVNULL
 from winrm import Protocol
 from winrm import Response
@@ -14,7 +16,6 @@ from datetime import timedelta
 from snaptree import create_tree
 
 vms = None
-server = None
 config = None
 vms_cache_filename = None
 states = {3: 'off',
@@ -92,7 +93,7 @@ def update_all_cache(force=False):
 
     if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
         ps_script = "Get-VM * | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json"
-        rs = run_ps(ps_script, server)
+        rs = run_ps(ps_script)
 
         if rs.status_code != 0:
             print(rs.std_err)
@@ -166,7 +167,7 @@ def list_vm_snaps(vm_index):
     ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,\
  CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -208,7 +209,7 @@ def restore_vm_snap(vm_index, snap_name):
     ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
 
     print('Restoring snapshot "{0}" in {1}'.format(snap_name, vm_name))
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -243,7 +244,7 @@ def remove_vm_snapshot(vm_index, snap_name, recursive=False):
     print('Removing snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
     if recursive:
         print("and it's children")
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -270,7 +271,7 @@ def create_vm_snapshot(vm_index, snap_name):
     ps_script = 'Checkpoint-VM -Name "{0}" -SnapshotName "{1}" -Confirm:$false'.format(vm_name, snap_name)
 
     print('Creating snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -292,7 +293,7 @@ def get_vm(vm_index):
     vm_name = vms[vm_index]['Name']
 
     ps_script = "Get-VM -Name {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -318,7 +319,7 @@ def stop_vm(vm_index, force=False):
         ps_script += " -Force"
 
     print('Stopping VM "{}", force: {}'.format(vm_name, force))
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -342,7 +343,7 @@ def resume_vm(vm_index):
     ps_script = "Resume-VM -Name {0}".format(vm_name)
 
     print('Resuming VM "{0}"'.format(vm_name))
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -366,7 +367,7 @@ def pause_vm(vm_index):
     ps_script = "Suspend-VM -Name {0}".format(vm_name)
 
     print('Pausing VM "{0}"'.format(vm_name))
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -390,7 +391,7 @@ def start_vm(vm_index):
     ps_script = "Start-VM -Name {0}".format(vm_name)
 
     print('Starting VM "{0}"'.format(vm_name))
-    rs = run_ps(ps_script, server)
+    rs = run_ps(ps_script)
 
     if rs.status_code != 0:
         print(rs.std_err)
@@ -409,25 +410,13 @@ def setup(configp):
         configp (dict): Configuration from config file
     """
     global config
-    global server
     global vms_cache_filename
 
     config = configp
-
-    domain = config['domain']
-    user = config['user']
-    passw = config['pass']
-    host = config['host']
     vms_cache_filename = config['cache_file']
 
-    server = Protocol(endpoint='http://{0}:5985/wsman'.format(host),
-                      transport='ntlm',
-                      username='{0}\{1}'.format(domain, user),
-                      password=passw,
-                      server_cert_validation='ignore')
 
-
-def run_ps(ps, proto):
+def run_ps(ps):
     """
     Run powershell script on target machine
 
@@ -438,12 +427,37 @@ def run_ps(ps, proto):
     Returns:
         Response: Object containing stderr, stdout and exit_status
     """
+    func_d = {'ssh': run_cmd_ssh,
+              'winrm': run_cmd_winrm}
+    proto = config['protocol']
     encoded_ps = b64encode(ps.encode('utf_16_le')).decode('ascii')
-    rs = run_cmd('powershell -encodedcommand {0}'.format(encoded_ps), proto)
+    rs = func_d[proto]('powershell -encodedcommand {0}'.format(encoded_ps))
     return rs
 
 
-def run_cmd(cmd, proto):
+def run_cmd_ssh(cmd):
+    """
+    """
+    ssh_client = SSHClient()
+    ssh_client.load_system_host_keys()
+    ssh_client.connect(username=config['user'],
+                       password=config['pass'],
+                       hostname=config['host'])
+
+    rs = namedtuple('Response', ['std_out', 'std_err', 'status_code'])
+    (sin, sout, serr) = ssh_client.exec_command(cmd)
+    rs.std_out = sout.read()
+    rs.std_err = serr.read()
+    ssh_client.close()
+
+    rs.status_code = 0
+    if rs.std_err is not None:
+        rs.status_code = 1
+
+    return rs
+
+
+def run_cmd_winrm(cmd):
     """
     Run batch script on target machine
 
@@ -454,9 +468,17 @@ def run_cmd(cmd, proto):
     Returns:
         Response: Object containing stderr, stdout and exit_status
     """
-    shell_id = proto.open_shell()
-    command_id = proto.run_command(shell_id, cmd)
-    rs = Response(proto.get_command_output(shell_id, command_id))
-    proto.cleanup_command(shell_id, command_id)
-    proto.close_shell(shell_id)
+    client = Protocol(endpoint='http://{0}:5985/wsman'.format(config['host']),
+                      transport='ntlm',
+                      username='{0}\{1}'.format(config['domain'],
+                                                config['user']),
+                      password=config['pass'],
+                      server_cert_validation='ignore')
+
+    shell_id = client.open_shell()
+    command_id = client.run_command(shell_id, cmd)
+    rs = Response(client.get_command_output(shell_id, command_id))
+    client.cleanup_command(shell_id, command_id)
+    client.close_shell(shell_id)
+
     return rs
