@@ -442,7 +442,8 @@ def run_cmd_ssh(cmd):
     ssh_client.load_system_host_keys()
     ssh_client.connect(username=config['user'],
                        password=config['pass'],
-                       hostname=config['host'])
+                       hostname=config['host'],
+                       port=int(config['ssh_port']))
 
     rs = namedtuple('Response', ['std_out', 'std_err', 'status_code'])
     (sin, sout, serr) = ssh_client.exec_command(cmd)

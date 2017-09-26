@@ -13,6 +13,9 @@ Hypy uses winrm to comunicate with hyper-v server shell and sends powershell com
 Hypy uses winrm to communicate with the hyper-v host, so it must be enabled and accepting connections.
 https://github.com/diyan/pywinrm has a session explaining how to Enable WinRM on the remote host.
 
+### SSH
+As an alternative to winrm, you can setup a SSH server on the hyper-v host. Passing protocol parameter in command line or setting ssh in the protocol option.
+
 ### FreeRDP
 FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is working before using hypy or it will not open the session to the virtual machine.
 
@@ -32,6 +35,8 @@ user = <user name in server>
 pass = <password>
 
 [options]
+protocol = <ssh or winrm>
+ssh_port = 22
 cache_file = <name of cache file>
 sync_interval = <interval in hours to make new cache file>
 ```
@@ -40,19 +45,25 @@ You must have write permissions to the path pointed by cache_file
 ## usage
 If you don't know how to use hypy, you can use `hypy.py --help`
 ```
-hypy.py --help
-  Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
+hypy --help
+Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
 
   Multiplataform Hyper-V Manager using Python and FreeRDP
 
 Options:
-  --help  Show this message and exit.
+  -u, --user TEXT    Username in hyper-v server
+  -p, --pass TEXT    Password in hyper-v server
+  -d, --domain TEXT  Domain name
+  -m, --host TEXT    Hyper-V server hostname/ip address
+  -t, --proto TEXT   Protocol to be used: ssh or winrm
+  --help             Show this message and exit.
 
 Commands:
   connect  Connect to virtual machine identified by...
   create   Create a new snapshot with vm's current state
   delete   Delete a machine's snapshot by name
   list     List virtual machines and its indexes
+  ls       List updated virtual machines and its indexes
   pause    Pause virtual machine identified by index
   restore  Restore virtual machine snapshot
   resume   Resume (paused) virtual machine identified by...

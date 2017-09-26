@@ -11,7 +11,7 @@ import click
 @click.option('passw', '--pass', '-p', help='Password in hyper-v server')
 @click.option('--domain', '-d', help='Domain name')
 @click.option('--host', '-m', help='Hyper-V server hostname/ip address')
-@click.option('--proto', '-p', help='Protocol to be used: ssh or winrm')
+@click.option('--proto', '-t', help='Protocol to be used: ssh or winrm')
 def main(user, passw, domain, host, proto):
     """
     Multiplataform Hyper-V Manager using Python and FreeRDP
@@ -123,6 +123,7 @@ def load_config(user, passw, domain, host, proto):
         configuration['cache_file'] = options['cache_file']
         configuration['sync_interval'] = options['sync_interval']
         configuration['protocol'] = options['protocol']
+        configuration['ssh_port'] = options['ssh_port']
 
         if proto is not None:
             configuration['protocol'] = proto
