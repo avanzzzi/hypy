@@ -11,7 +11,8 @@ import click
 @click.option('passw', '--pass', '-p', help='Password in hyper-v server')
 @click.option('--domain', '-d', help='Domain name')
 @click.option('--host', '-m', help='Hyper-V server hostname/ip address')
-@click.option('--proto', '-t', help='Protocol to be used: ssh or winrm')
+@click.option('--proto', '-t', help='Protocol to be used',
+              type=click.Choice(['ssh', 'winrm']))
 def main(user, passw, domain, host, proto):
     """
     Multiplataform Hyper-V Manager using Python and FreeRDP
@@ -20,8 +21,8 @@ def main(user, passw, domain, host, proto):
 
 
 @main.command("list", help='List virtual machines and its indexes')
-@click.option('--sync', '-s', is_flag=True, help='Syncronize with server\
- updating local cache')
+@click.option('--sync', '-s', is_flag=True,
+              help='Syncronize with server updating local cache')
 def list_vms(sync):
     hvclient.update_all_cache(sync)
     hvclient.list_vms()
@@ -34,63 +35,81 @@ def ls(ctx):
 
 
 @main.command(help='List virtual machine snapshots')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
-def snaps(index):
-    hvclient.list_vm_snaps(int(index))
+def snaps(by_name, index):
+    hvclient.list_vm_snaps(by_name, index)
 
 
 @main.command(help='Restore virtual machine snapshot')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
 @click.argument('snap_name')
-def restore(index, snap_name):
-    hvclient.restore_vm_snap(int(index), snap_name)
+def restore(by_name, index, snap_name):
+    hvclient.restore_vm_snap(by_name, index, snap_name)
 
 
 @main.command(help="Delete a machine's snapshot by name")
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.option('-r', is_flag=True, help="Remove snapshot's children as well")
 @click.argument('index')
 @click.argument('snap_name')
-@click.option('-r', is_flag=True, help="Remove snapshot's children as well")
-def delete(index, snap_name, r):
-    hvclient.remove_vm_snapshot(int(index), snap_name, r)
+def delete(by_name, index, snap_name, r):
+    hvclient.remove_vm_snapshot(by_name, index, snap_name, r)
 
 
 @main.command(help="Create a new snapshot with vm's current state")
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
 @click.argument('snap_name')
-def create(index, snap_name):
-    hvclient.create_vm_snapshot(int(index), snap_name)
+def create(by_name, index, snap_name):
+    hvclient.create_vm_snapshot(by_name, index, snap_name)
 
 
 @main.command(help="Connect to virtual machine identified by index")
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
-def connect(index):
-    hvclient.connect(int(index))
+def connect(by_name, index):
+    hvclient.connect(by_name, index)
 
 
 @main.command(help='Start virtual machine identified by index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
-def start(index):
-    hvclient.start_vm(int(index))
+def start(by_name, index):
+    hvclient.start_vm(by_name, index)
 
 
 @main.command(help='Pause virtual machine identified by index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
-def pause(index):
-    hvclient.pause_vm(int(index))
+def pause(by_name, index):
+    hvclient.pause_vm(by_name, index)
 
 
 @main.command(help='Resume (paused) virtual machine identified by index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.argument('index')
-def resume(index):
-    hvclient.resume_vm(int(index))
+def resume(by_name, index):
+    hvclient.resume_vm(by_name, index)
 
 
 @main.command(help='Stop virtual machine identified by index')
 @click.argument('index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
 @click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest\
  five minutes to save data, then forces a shutdown')
-def stop(index, force):
-    hvclient.stop_vm(int(index), force)
+def stop(by_name, index, force):
+    hvclient.stop_vm(by_name, index, force)
 
 
 def load_config(user, passw, domain, host, proto):

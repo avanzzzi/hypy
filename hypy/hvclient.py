@@ -24,7 +24,7 @@ states = {3: 'off',
           6: 'saved'}
 
 
-def connect(index):
+def connect(by_name, index):
     """
     Connect to virtual machine by index using freerdp
 
@@ -32,15 +32,18 @@ def connect(index):
         index (int): The machine's index generated in the current cache
     """
     load_vms()
+    if by_name:
+        vm_id = [vm['Id'] for vm in vms if vm['Name'] == index][0]
+    else:
+        vm_id = vms[int(index)]['Id']
 
-    vm_id = vms[index]['Id']
     user = config['user']
     passw = config['pass']
     host = config['host']
 
-    vm_info = get_vm(index)
+    vm_info = get_vm(by_name, index)
     if vm_info != '' and vm_info['State'] != 2 and vm_info['State'] != 9:
-        start_vm(index)
+        start_vm(by_name, index)
         time.sleep(10)
 
     if platform.uname()[0] == "Windows":
@@ -59,21 +62,6 @@ def connect(index):
         Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
     except FileNotFoundError as err:
         print("{} not found in PATH\n{}".format(freerdp_bin, err))
-
-
-def update_cache(index, new_state):
-    """
-    Update machine state on cache by index
-    Called after start, stop, pause and resume operations
-
-    Args:
-        index (int): machine index in current cache
-        new_state (int): represented by states dict
-    """
-    vms[index]['State'] = new_state
-
-    with open(vms_cache_filename, 'w') as vms_cache_file:
-        json.dump(vms, vms_cache_file, indent=4)
 
 
 def update_all_cache(force=False):
@@ -154,18 +142,20 @@ def list_vms():
         print("[{0}] {1} {2} {3}".format(index, state, name, uptime))
 
 
-def list_vm_snaps(vm_index):
+def list_vm_snaps(by_name, index):
     """
     List vm snapshots by vm index
 
     Args:
         vm_index (int): The machine's index generated in the current cache
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
-    ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,\
- CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script)
 
@@ -192,7 +182,7 @@ def list_vm_snaps(vm_index):
     print(t_snaps)
 
 
-def restore_vm_snap(vm_index, snap_name):
+def restore_vm_snap(by_name, index, snap_name):
     """
     Restore virtual machine snapshot
 
@@ -203,9 +193,12 @@ def restore_vm_snap(vm_index, snap_name):
     Returns:
         bool: True if success
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
 
     print('Restoring snapshot "{0}" in {1}'.format(snap_name, vm_name))
@@ -219,7 +212,7 @@ def restore_vm_snap(vm_index, snap_name):
     return True
 
 
-def remove_vm_snapshot(vm_index, snap_name, recursive=False):
+def remove_vm_snapshot(by_name, index, snap_name, recursive=False):
     """
     Deletes a virtual machine checkpoint
 
@@ -232,9 +225,12 @@ def remove_vm_snapshot(vm_index, snap_name, recursive=False):
     Returns:
         bool: True if success
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name,
                                                                      snap_name)
     if recursive:
@@ -254,7 +250,7 @@ def remove_vm_snapshot(vm_index, snap_name, recursive=False):
     return True
 
 
-def create_vm_snapshot(vm_index, snap_name):
+def create_vm_snapshot(by_name, index, snap_name):
     """
     Create a new snapshot with vm's current state
 
@@ -265,9 +261,12 @@ def create_vm_snapshot(vm_index, snap_name):
     Returns:
         bool: True if success
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = 'Checkpoint-VM -Name "{0}" -SnapshotName "{1}" -Confirm:$false'.format(vm_name, snap_name)
 
     print('Creating snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
@@ -281,16 +280,18 @@ def create_vm_snapshot(vm_index, snap_name):
     return True
 
 
-def get_vm(vm_index):
+def get_vm(by_name, index):
     """
     Gets vm info by index
 
     Args:
         vm_index (int): The machine's index generated in the current cache
     """
-    load_vms()
-
-    vm_name = vms[vm_index]['Name']
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
     ps_script = "Get-VM -Name {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
     rs = run_ps(ps_script)
@@ -303,7 +304,7 @@ def get_vm(vm_index):
     return vm_json
 
 
-def stop_vm(vm_index, force=False):
+def stop_vm(by_name, index, force=False):
     """
     Stop virtual machine
 
@@ -311,9 +312,12 @@ def stop_vm(vm_index, force=False):
         vm_index (int): The machine's index generated in the current cache
         force (bool): Whether should force shutdown or not
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = "Stop-VM -Name {}".format(vm_name)
     if force:
         ps_script += " -Force"
@@ -325,21 +329,23 @@ def stop_vm(vm_index, force=False):
         print(rs.std_err)
         return False
 
-    update_cache(vm_index, 3)
     print("Success")
     return True
 
 
-def resume_vm(vm_index):
+def resume_vm(by_name, index):
     """
     Resume (paused) virtual machine
 
     Args:
         vm_index (int): The machine's index generated in the current cache
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = "Resume-VM -Name {0}".format(vm_name)
 
     print('Resuming VM "{0}"'.format(vm_name))
@@ -349,21 +355,23 @@ def resume_vm(vm_index):
         print(rs.std_err)
         return False
 
-    update_cache(vm_index, 2)
     print("Success")
     return True
 
 
-def pause_vm(vm_index):
+def pause_vm(by_name, index):
     """
     Pause virtual machine
 
     Args:
         vm_index (int): The machine's index generated in the current cache
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = "Suspend-VM -Name {0}".format(vm_name)
 
     print('Pausing VM "{0}"'.format(vm_name))
@@ -373,21 +381,23 @@ def pause_vm(vm_index):
         print(rs.std_err)
         return False
 
-    update_cache(vm_index, 9)
     print("Success")
     return True
 
 
-def start_vm(vm_index):
+def start_vm(by_name, index):
     """
     Start virtual machine
 
     Args:
         vm_index (int): The machine's index generated in the current cache
     """
-    load_vms()
+    if by_name:
+        vm_name = index
+    else:
+        load_vms()
+        vm_name = vms[int(index)]['Name']
 
-    vm_name = vms[vm_index]['Name']
     ps_script = "Start-VM -Name {0}".format(vm_name)
 
     print('Starting VM "{0}"'.format(vm_name))
@@ -397,7 +407,6 @@ def start_vm(vm_index):
         print(rs.std_err)
         return False
 
-    update_cache(vm_index, 2)
     print("Success")
     return True
 
