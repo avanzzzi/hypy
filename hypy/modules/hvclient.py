@@ -57,6 +57,8 @@ def connect(by_name, index):
 def get_vms(vm_name):
     """
     """
+    if not vm_name:
+        vm_name = '*'
     ps_script = "Get-VM -Name {} | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json".format(vm_name)
     rs = run_ps(ps_script)
 

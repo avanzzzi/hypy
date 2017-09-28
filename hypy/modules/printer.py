@@ -1,6 +1,7 @@
 from colorama import init, Fore
 from datetime import timedelta
 from modules.snaptree import create_tree
+from fnmatch import fnmatch
 import json
 
 
@@ -9,10 +10,6 @@ states = {3: 'off',
           2: 'running',
           9: 'paused',
           6: 'saved'}
-
-
-def parse_result(rs):
-    pass
 
 
 def print_vm_snaps(vm_name, rs):
@@ -42,7 +39,7 @@ def print_vm_snaps(vm_name, rs):
     print('{}{}'.format(Fore.RESET, t_snaps))
 
 
-def print_list_vms(vms_json):
+def print_list_vms(vms_json, filter_vms):
     """
     """
     # Listing
@@ -54,8 +51,13 @@ def print_list_vms(vms_json):
                                "Name".ljust(30),
                                "Uptime"))
 
+    if filter_vms:
+        vms_show = [vm for vm in vms_json if fnmatch(vm['Name'], filter_vms)]
+    else:
+        vms_show = vms_json
+
     # Listing
-    for vm in vms_json:
+    for vm in vms_show:
         index = str(vms_json.index(vm)).rjust(3)
         state = states.get(vm['State'], "unknown").ljust(7)
         name = str(vm['Name']).ljust(30)

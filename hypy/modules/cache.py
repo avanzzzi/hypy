@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import json
 
 vms_cache_filename = None
+sync_interval = None
 
 
 def list_vms():
@@ -14,14 +15,8 @@ def list_vms():
 
 
 def update_cache(vms_json):
-    # If there is only one vm, make it a list
-    if isinstance(vms_json, dict):
-        vms_json = [vms_json]
-
     if isfile(vms_cache_filename):
-        with open(vms_cache_filename, 'r') as vms_cache_file:
-            vms_cache = json.load(vms_cache_file)
-
+        vms_cache = list_vms()
         vms_json = list({x['Id']: x for x in vms_cache + vms_json}.values())
 
     vms_json.sort(key=lambda k: k['Name'])
@@ -34,7 +29,7 @@ def need_update(force=False):
     if isfile(vms_cache_filename):
         modified = datetime.fromtimestamp(getmtime(vms_cache_filename))
 
-    if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
+    if modified < datetime.now() - timedelta(hours=int(sync_interval)) or force:
         return True
 
     return False

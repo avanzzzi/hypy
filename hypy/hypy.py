@@ -27,17 +27,19 @@ def main(user, passw, domain, host, proto):
               help='Syncronize with server updating local cache')
 @click.option('--name', '-n', help='Use vm name instead of index')
 def list_vms(sync, name):
-    rs = hvclient.get_vms(name)
-    vms = hvclient.parse_result(rs)
-    cache.update_cache(vms)
-    cache_vms = cache.cache_list_vms()
-    printer.print_list_vms(cache_vms)
+    if sync:
+        rs = hvclient.get_vms(name)
+        vms = hvclient.parse_result(rs)
+        cache.update_cache(vms)
+    cache_vms = cache.list_vms()
+    printer.print_list_vms(cache_vms, name)
 
 
 @main.command("ls", help='List updated virtual machines and its indexes')
+@click.option('--name', '-n', help='Use vm name instead of index')
 @click.pass_context
-def ls(ctx):
-    ctx.invoke(list_vms, sync=True)
+def ls(ctx, name):
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='List virtual machine snapshots')
@@ -159,6 +161,8 @@ def load_config(user, passw, domain, host, proto):
             configuration['protocol'] = proto
 
         hvclient.setup(configuration)
+        cache.vms_cache_filename = options['cache_file']
+        cache.sync_interval = options['sync_interval']
 
     except KeyError:
         print("Please, configure your credentials file - hypy.conf")
