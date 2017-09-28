@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import json
-import os.path
 import time
 import platform
 from collections import namedtuple
@@ -11,17 +10,8 @@ from subprocess import Popen, DEVNULL
 from winrm import Protocol
 from winrm import Response
 from base64 import b64encode
-from datetime import datetime
-from datetime import timedelta
-from snaptree import create_tree
 
-vms = None
 config = None
-vms_cache_filename = None
-states = {3: 'off',
-          2: 'running',
-          9: 'paused',
-          6: 'saved'}
 
 
 def connect(by_name, index):
@@ -31,7 +21,7 @@ def connect(by_name, index):
     Args:
         index (int): The machine's index generated in the current cache
     """
-    load_vms()
+    vms = load_vms_from_cache()
     if by_name:
         vm_id = [vm['Id'] for vm in vms if vm['Name'] == index][0]
     else:
@@ -64,122 +54,40 @@ def connect(by_name, index):
         print("{} not found in PATH\n{}".format(freerdp_bin, err))
 
 
-def update_all_cache(force=False):
+def get_vms(vm_name):
     """
-    Checks cache file modification time and update vm list
-    Creates cache file if nonexistent
-
-    Args:
-        force (bool, optional): Whether should force cache update or not
-
-    Returns:
-        bool: True for success
     """
-    modified = datetime.min
-    if os.path.isfile(vms_cache_filename):
-        modified = datetime.fromtimestamp(os.path.getmtime(vms_cache_filename))
+    ps_script = "Get-VM -Name {} | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json".format(vm_name)
+    rs = run_ps(ps_script)
 
-    if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
-        ps_script = "Get-VM * | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json"
-        rs = run_ps(ps_script)
-
-        if rs.status_code != 0:
-            print(rs.std_err)
-            return False
-
-        vms_json = json.loads(rs.std_out.decode('latin-1'))
-
-        # If there is only one vm, make it a list
-        if isinstance(vms_json, dict):
-            vms_json = [vms_json]
-
-        with open(vms_cache_filename, 'w') as vms_cache_file:
-            json.dump(vms_json, vms_cache_file, indent=4)
-
-    return True
+    return rs
 
 
-def load_vms():
-    """
-    Loads current cache file into memory
-
-    Returns:
-        bool: True for success
-    """
-    global vms
-
-    try:
-        with open(vms_cache_filename, 'r') as vms_cache_file:
-            vms = json.load(vms_cache_file)
-    except IOError:
-        print("Cannot access file {0}".format(vms_cache_filename))
-        return False
-
-    return True
-
-
-def list_vms():
+def list_vms(sync):
     """
     List virtual machines
     """
-    load_vms()
+    vms = load_vms_from_cache()
 
-    # Listing
-    print("-- Hyper-V Virtual Machine Listing --")
-
-    # Header
-    print("{0} {1} {2} {3}".format("Index".rjust(5),
-                                   "State".ljust(7),
-                                   "Name".ljust(30),
-                                   "Uptime"))
-
-    # Listing
-    for vm in vms:
-        index = str(vms.index(vm)).rjust(3)
-        state = states.get(vm['State'], "unknown").ljust(7)
-        name = str(vm['Name']).ljust(30)
-        uptime = str(timedelta(hours=vm['Uptime']['TotalHours']))
-        print("[{0}] {1} {2} {3}".format(index, state, name, uptime))
+    return vms
 
 
-def list_vm_snaps(by_name, index):
+def list_vm_snaps(vm_name, vm_index):
     """
-    List vm snapshots by vm index
+    List vm snapshots.
 
     Args:
+        vm_name (str): The virtual machine name
         vm_index (int): The machine's index generated in the current cache
     """
-    if by_name:
-        vm_name = index
-    else:
-        load_vms()
-        vm_name = vms[int(index)]['Name']
+    if vm_index:
+        vms = load_vms_from_cache()
+        vm_name = vms[int(vm_index)]['Name']
 
     ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    try:
-        snaps_json = json.loads(rs.std_out.decode('latin-1'))
-    except Exception as e:
-        print("Virtual Machine {} has no snapshots: {}".format(vm_name, e))
-        return
-
-    # If there is only one snap, make it a list
-    if isinstance(snaps_json, dict):
-        snaps_json = [snaps_json]
-
-    t_snaps = create_tree(snaps_json, vm_name, f_pid="ParentSnapshotId",
-                          f_id="Id",
-                          f_label="Name",
-                          f_ctime="CreationTime",
-                          v_none=None)
-    print("-- Virtual Machine Snapshots --")
-    print(t_snaps)
+    return vm_name, rs
 
 
 def restore_vm_snap(by_name, index, snap_name):
@@ -196,7 +104,7 @@ def restore_vm_snap(by_name, index, snap_name):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
@@ -228,7 +136,7 @@ def remove_vm_snapshot(by_name, index, snap_name, recursive=False):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name,
@@ -264,7 +172,7 @@ def create_vm_snapshot(by_name, index, snap_name):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = 'Checkpoint-VM -Name "{0}" -SnapshotName "{1}" -Confirm:$false'.format(vm_name, snap_name)
@@ -280,6 +188,24 @@ def create_vm_snapshot(by_name, index, snap_name):
     return True
 
 
+def parse_result(rs):
+    if rs.status_code != 0:
+        print(rs.std_err)
+        return False
+
+    try:
+        rs_json = json.loads(rs.std_out.decode('latin-1'))
+    except Exception as e:
+        print("Error parsing remote response: {}".format(e))
+        return False
+
+    # If there is only one snap, make it a list
+    if isinstance(rs_json, dict):
+        rs_json = [rs_json]
+
+    return rs_json
+
+
 def get_vm(by_name, index):
     """
     Gets vm info by index
@@ -290,7 +216,7 @@ def get_vm(by_name, index):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = "Get-VM -Name {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
@@ -315,7 +241,7 @@ def stop_vm(by_name, index, force=False):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = "Stop-VM -Name {}".format(vm_name)
@@ -343,7 +269,7 @@ def resume_vm(by_name, index):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = "Resume-VM -Name {0}".format(vm_name)
@@ -369,7 +295,7 @@ def pause_vm(by_name, index):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = "Suspend-VM -Name {0}".format(vm_name)
@@ -395,7 +321,7 @@ def start_vm(by_name, index):
     if by_name:
         vm_name = index
     else:
-        load_vms()
+        vms = load_vms_from_cache()
         vm_name = vms[int(index)]['Name']
 
     ps_script = "Start-VM -Name {0}".format(vm_name)

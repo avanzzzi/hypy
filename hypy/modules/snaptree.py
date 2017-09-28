@@ -2,6 +2,7 @@ import re
 from asciitree import LeftAligned
 from collections import OrderedDict as OD
 from datetime import datetime
+from colorama import Fore
 
 
 def convert_dt(creation_time):
@@ -16,7 +17,8 @@ def create_tree(table,
                 f_id="id",
                 f_label="item",
                 f_ctime="ctime",
-                v_none="null"):
+                v_none="null",
+                colors=False):
     items = [(c[f_pid], c[f_id]) for c in table]
     tree = {root: OD()}
     inserted = []
@@ -31,10 +33,14 @@ def create_tree(table,
     tr = LeftAligned()
     tr_tree = tr(tree)
 
-    for cell in table:
-        tr_tree = tr_tree.replace(cell[f_id],
-                                  "{} ({})".format(cell[f_label],
-                                                   convert_dt(cell[f_ctime])))
+    if not colors:
+        for cell in table:
+            tr_tree = tr_tree.replace(cell[f_id],
+                                      "{} ({})".format(cell[f_label], convert_dt(cell[f_ctime])))
+    else:
+        for cell in table:
+            tr_tree = tr_tree.replace(cell[f_id],
+                                      "{}{} {}({}){}".format(Fore.LIGHTWHITE_EX, cell[f_label], Fore.CYAN, convert_dt(cell[f_ctime]), Fore.RESET))
 
     return tr_tree
 

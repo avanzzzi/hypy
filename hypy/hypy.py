@@ -2,8 +2,10 @@
 # coding: utf-8
 
 import configparser
-import hvclient
 import click
+from modules import hvclient
+from modules import printer
+from modules import cache
 
 
 @click.group()
@@ -21,11 +23,15 @@ def main(user, passw, domain, host, proto):
 
 
 @main.command("list", help='List virtual machines and its indexes')
-@click.option('--sync', '-s', is_flag=True,
+@click.option('--sync', '-s', is_flag=True, default=False,
               help='Syncronize with server updating local cache')
-def list_vms(sync):
-    hvclient.update_all_cache(sync)
-    hvclient.list_vms()
+@click.option('--name', '-n', help='Use vm name instead of index')
+def list_vms(sync, name):
+    rs = hvclient.get_vms(name)
+    vms = hvclient.parse_result(rs)
+    cache.update_cache(vms)
+    cache_vms = cache.cache_list_vms()
+    printer.print_list_vms(cache_vms)
 
 
 @main.command("ls", help='List updated virtual machines and its indexes')
@@ -35,11 +41,16 @@ def ls(ctx):
 
 
 @main.command(help='List virtual machine snapshots')
-@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
-              help='Use vm name instead of index')
-@click.argument('index')
-def snaps(by_name, index):
-    hvclient.list_vm_snaps(by_name, index)
+@click.option('--name', '-n', help='Use vm name instead of index')
+@click.argument('index', required=False)
+@click.pass_context
+def snaps(ctx, name, index):
+    if not (name or index) or (name and index):
+        click.echo(ctx.get_help())
+        return
+
+    vm_name, rs = hvclient.list_vm_snaps(name, index)
+    printer.print_vm_snaps(vm_name, rs)
 
 
 @main.command(help='Restore virtual machine snapshot')
