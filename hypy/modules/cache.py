@@ -1,3 +1,6 @@
+"""
+Cache module. Interacts with the cache file.
+"""
 from os.path import isfile, getmtime
 from datetime import datetime, timedelta
 import json
@@ -6,15 +9,56 @@ vms_cache_filename = None
 sync_interval = None
 
 
-def list_vms():
+def get_vm_by_name(name: str) -> dict:
+    """
+    Get vm from cache.
+
+    Args:
+        name: The name of the virtual machine.
+    Returns:
+        The vm info found in the cache.
+    """
+    vms = list_vms()
+    vm = [vm for vm in vms if vm['Name'] == name]
+    vm['index'] = vms.index(vm)
+    return vm
+
+
+def get_vm_by_index(index: str) -> dict:
+    """
+    Get vm from cache.
+
+    Args:
+        index: The index of the vm in the cache.
+    Returns:
+        The vm info found in the cache.
+    """
+    vms = list_vms()
+    return vms[int(index)]
+
+
+def list_vms() -> list:
+    """
+    Get all vms from cache.
+
+    Returns:
+        All vm info found in cache.
+    """
     if isfile(vms_cache_filename):
         with open(vms_cache_filename, 'r') as vms_cache_file:
             vms_cache = json.load(vms_cache_file)
 
         return vms_cache
+    return None
 
 
-def update_cache(vms_json):
+def update_cache(vms_json: dict):
+    """
+    Update current cache with new information.
+
+    Args:
+        vms_json: Information to be included in cache.
+    """
     if isfile(vms_cache_filename):
         vms_cache = list_vms()
         vms_json = list({x['Id']: x for x in vms_cache + vms_json}.values())
@@ -24,58 +68,18 @@ def update_cache(vms_json):
         json.dump(vms_json, vms_cache_file, indent=4)
 
 
-def need_update(force=False):
+def need_update() -> bool:
+    """
+    Cheks if cache needs update based on cache file modification date.
+
+    Returns:
+        True if the cache file is older than sync interval in hours.
+    """
     modified = datetime.min
     if isfile(vms_cache_filename):
         modified = datetime.fromtimestamp(getmtime(vms_cache_filename))
 
-    if modified < datetime.now() - timedelta(hours=int(sync_interval)) or force:
+    if modified < datetime.now() - timedelta(hours=int(sync_interval)):
         return True
 
     return False
-
-
-def update_all_cache(force=False):
-    """
-    Checks cache file modification time and update vm list
-    Creates cache file if nonexistent
-
-    Args:
-        force (bool, optional): Whether should force cache update or not
-
-    Returns:
-        bool: True for success
-    """
-    modified = datetime.min
-    if isfile(vms_cache_filename):
-        modified = datetime.fromtimestamp(getmtime(vms_cache_filename))
-
-    if modified < datetime.now() - timedelta(hours=int(config['sync_interval'])) or force:
-        ps_script = "Get-VM * | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json"
-        rs = run_ps(ps_script)
-
-        if rs.status_code != 0:
-            print(rs.std_err)
-            return False
-
-        vms_json = json.loads(rs.std_out.decode('latin-1'))
-        update_cache(vms_json)
-
-    return True
-
-
-def load_vms_from_cache():
-    """
-    Loads current cache file into memory
-
-    Returns:
-        bool: True for success
-    """
-    vms = None
-    try:
-        with open(vms_cache_filename, 'r') as vms_cache_file:
-            vms = json.load(vms_cache_file)
-    except IOError:
-        print("Cannot access file {0}".format(vms_cache_filename))
-
-    return vms

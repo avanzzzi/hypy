@@ -1,3 +1,6 @@
+"""
+Snaptree module. Groups the functions used to create the tree of checkpoints.
+"""
 import re
 from asciitree import LeftAligned
 from collections import OrderedDict as OD
@@ -5,20 +8,43 @@ from datetime import datetime
 from colorama import Fore
 
 
-def convert_dt(creation_time):
+def convert_dt(creation_time: str) -> str:
+    """
+    Convert hyper-v timestamp to readable datetime.
+
+    Args:
+        creation_time: Timestamp with the snapshot creation date.
+    Returns:
+        Datetime string in readable format.
+    """
     c = datetime.fromtimestamp(float(re.search("[0-9]+",
                                      creation_time).group())/1000.0)
     return c.strftime("%d/%m/%Y %H:%M:%S")
 
 
-def create_tree(table,
-                root,
-                f_pid="pid",
-                f_id="id",
-                f_label="item",
-                f_ctime="ctime",
-                v_none="null",
-                colors=False):
+def create_tree(table: dict,
+                root: str,
+                f_pid: str="pid",
+                f_id: str="id",
+                f_label: str="item",
+                f_ctime: str="ctime",
+                v_none: str="null",
+                colors: bool=False) -> str:
+    """
+    Creates the ascii checkpoint tree.
+
+    Args:
+        table: List of checkpoints as a table.
+        root: Root label of the tree.
+        f_pid: Field of the table that contains the parent id of the node.
+        f_id: Field of the table that contains the id of the node.
+        f_label: Field with the label of the node.
+        f_ctime: Field with the timestamp creation date.
+        v_none: Value to be used for empty fields.
+        colors: Use colots in the tree output.
+    Returns:
+        A string containing the tree of snapshots
+    """
     items = [(c[f_pid], c[f_id]) for c in table]
     tree = {root: OD()}
     inserted = []
@@ -36,16 +62,33 @@ def create_tree(table,
     if not colors:
         for cell in table:
             tr_tree = tr_tree.replace(cell[f_id],
-                                      "{} ({})".format(cell[f_label], convert_dt(cell[f_ctime])))
+                                      "{} ({})".format(
+                                          cell[f_label],
+                                          convert_dt(cell[f_ctime])))
     else:
         for cell in table:
             tr_tree = tr_tree.replace(cell[f_id],
-                                      "{}{} {}({}){}".format(Fore.LIGHTWHITE_EX, cell[f_label], Fore.CYAN, convert_dt(cell[f_ctime]), Fore.RESET))
+                                      "{}{} {}({}){}".format(
+                                          Fore.LIGHTWHITE_EX,
+                                          cell[f_label],
+                                          Fore.CYAN,
+                                          convert_dt(cell[f_ctime]),
+                                          Fore.RESET))
 
     return tr_tree
 
 
-def walk(node, search_key, insert_key):
+def walk(node: dict, search_key: str, insert_key: str) -> str:
+    """
+    Walk in the tree to find where to insert the element.
+
+    Args:
+        node: The tree so far.
+        search_key: Where to insert the new value.
+        insert_key: The element to be inserted.
+    Yields:
+        List of inserted items in the current iteration.
+    """
     for k, v in node.items():
         if k == search_key:
             if insert_key not in node[k].keys():

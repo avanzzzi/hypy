@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-# coding: utf-8
-
 import json
-import time
 import platform
 from collections import namedtuple
 from paramiko import SSHClient, AutoAddPolicy
@@ -14,27 +10,18 @@ from base64 import b64encode
 config = None
 
 
-def connect(by_name, index):
+def connect(vm_name: str, vm_id: str, vm_index: str):
     """
-    Connect to virtual machine by index using freerdp
+    Connect to the virtual machine.
 
     Args:
-        index (int): The machine's index generated in the current cache
+        vm_name: Name of the vm to connect.
+        vm_id: Hyper-v unique identificator of the vm.
+        vm_index: Index of the vm in the cache file.
     """
-    vms = load_vms_from_cache()
-    if by_name:
-        vm_id = [vm['Id'] for vm in vms if vm['Name'] == index][0]
-    else:
-        vm_id = vms[int(index)]['Id']
-
     user = config['user']
     passw = config['pass']
     host = config['host']
-
-    vm_info = get_vm(by_name, index)
-    if vm_info != '' and vm_info['State'] != 2 and vm_info['State'] != 9:
-        start_vm(by_name, index)
-        time.sleep(10)
 
     if platform.uname()[0] == "Windows":
         freerdp_bin = "wfreerdp.exe"
@@ -45,7 +32,7 @@ def connect(by_name, index):
                         '/vmconnect:{0}'.format(vm_id),
                         '/u:{0}'.format(user),
                         '/p:{0}'.format(passw),
-                        '/t:{} [{}] {}'.format(host, index, vm_info['Name']),
+                        '/t:{} [{}] {}'.format(host, vm_index, vm_name),
                         '/cert-ignore']
 
     try:
@@ -54,8 +41,17 @@ def connect(by_name, index):
         print("{} not found in PATH\n{}".format(freerdp_bin, err))
 
 
-def get_vms(vm_name):
+def get_vm(vm_name: str) -> Response:
     """
+    Retrieve vm information from hyper-v.
+
+    Args:
+        vm_name: Name of the vm. Using * in the vm's name can retrieve info
+            of one or more machines. If the vm_name is None, * will be used
+            instead, gathering information about all vms in the host which can
+            be slow depending on the number of vms.
+    Returns:
+        Info obtained from remove hyper-v host.
     """
     if not vm_name:
         vm_name = '*'
@@ -65,132 +61,85 @@ def get_vms(vm_name):
     return rs
 
 
-def list_vms(sync):
-    """
-    List virtual machines
-    """
-    vms = load_vms_from_cache()
-
-    return vms
-
-
-def list_vm_snaps(vm_name, vm_index):
+def list_vm_snaps(vm_name: str) -> Response:
     """
     List vm snapshots.
 
     Args:
-        vm_name (str): The virtual machine name
-        vm_index (int): The machine's index generated in the current cache
+        vm_name: The virtual machine name.
+    Returns:
+        Info obtained from remove hyper-v host.
     """
-    if vm_index:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(vm_index)]['Name']
-
     ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script)
-    return vm_name, rs
+    return rs
 
 
-def restore_vm_snap(by_name, index, snap_name):
+def restore_vm_snap(vm_name: str, snap_name: str) -> Response:
     """
-    Restore virtual machine snapshot
+    Restore virtual machine snapshot.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
-        snap_name (str): The name of the checkpoint to be restored
-
+        vm_name: The virtual machine name.
+        snap_name: The name of the checkpoint to be restored.
     Returns:
-        bool: True if success
+        Info obtained from remove hyper-v host.
     """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
     ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
 
-    print('Restoring snapshot "{0}" in {1}'.format(snap_name, vm_name))
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
+    return rs
 
 
-def remove_vm_snapshot(by_name, index, snap_name, recursive=False):
+def remove_vm_snapshot(vm_name: str, snap_name: str,
+                       recursive: bool=False) -> Response:
     """
-    Deletes a virtual machine checkpoint
+    Deletes a virtual machine checkpoint.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
-        snap_name (str): The name of the checkpoint to be deleted
-        recursive (bool, optional): Specifies that the checkpoint’s children
-            are to be deleted along with the checkpoint
-
+        vm_name: The virtual machine name.
+        snap_name: The name of the checkpoint to be deleted.
+        recursive: Specifies that the checkpoint’s children
+            are to be deleted along with the checkpoint.
     Returns:
-        bool: True if success
+        Info obtained from remove hyper-v host.
     """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
     ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name,
                                                                      snap_name)
     if recursive:
         ps_script += " -IncludeAllChildSnapshots"
     ps_script += " -Confirm:$false"
 
-    print('Removing snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
-    if recursive:
-        print("and it's children")
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
+    return rs
 
 
-def create_vm_snapshot(by_name, index, snap_name):
+def create_vm_snapshot(vm_name: str, snap_name: str) -> Response:
     """
-    Create a new snapshot with vm's current state
+    Create a new snapshot with vm's current state.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
-        snap_name (str): The name of the checkpoint to be created
-
+        vm_name: The virtual machine name.
+        snap_name: The name of the checkpoint to be created.
     Returns:
-        bool: True if success
+        Info obtained from remove hyper-v host.
     """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
     ps_script = 'Checkpoint-VM -Name "{0}" -SnapshotName "{1}" -Confirm:$false'.format(vm_name, snap_name)
 
-    print('Creating snapshot "{0}" in "{1}"'.format(snap_name, vm_name))
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
+    return rs
 
 
-def parse_result(rs):
+def parse_result(rs: Response) -> dict:
+    """
+    Parse Respnse object obtained from hyper-v.
+
+    Args:
+        rs: Response object with its properties (out, err and return_code).
+    Returns:
+        Normalized information about the vm(s).
+    """
     if rs.status_code != 0:
         print(rs.std_err)
         return False
@@ -201,167 +150,84 @@ def parse_result(rs):
         print("Error parsing remote response: {}".format(e))
         return False
 
-    # If there is only one snap, make it a list
+    # If there is only one element, make it a list
     if isinstance(rs_json, dict):
         rs_json = [rs_json]
 
     return rs_json
 
 
-def get_vm(by_name, index):
+def stop_vm(vm_name: str, force: bool=False) -> Response:
     """
-    Gets vm info by index
+    Stop virtual machine.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
+        vm_name: The virtual machine name.
+        force: Whether should force shutdown or not.
+    Returns:
+        Info obtained from remove hyper-v host.
     """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
-    ps_script = "Get-VM -Name {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
-    rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return
-
-    vm_json = json.loads(rs.std_out.decode('latin-1'))
-    return vm_json
-
-
-def stop_vm(by_name, index, force=False):
-    """
-    Stop virtual machine
-
-    Args:
-        vm_index (int): The machine's index generated in the current cache
-        force (bool): Whether should force shutdown or not
-    """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
     ps_script = "Stop-VM -Name {}".format(vm_name)
     if force:
         ps_script += " -Force"
 
-    print('Stopping VM "{}", force: {}'.format(vm_name, force))
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
+    return rs
 
 
-def resume_vm(by_name, index):
+def resume_vm(vm_name: str) -> Response:
     """
-    Resume (paused) virtual machine
+    Resume (paused) virtual machine.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
+        vm_name: The virtual machine name.
+    Returns:
+        Info obtained from remove hyper-v host.
     """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
     ps_script = "Resume-VM -Name {0}".format(vm_name)
 
-    print('Resuming VM "{0}"'.format(vm_name))
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
+    return rs
 
 
-def pause_vm(by_name, index):
+def pause_vm(vm_name: str) -> Response:
     """
-    Pause virtual machine
+    Pause virtual machine.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
+        vm_name: The virtual machine name.
+    Returns:
+        Info obtained from remove hyper-v host.
     """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
     ps_script = "Suspend-VM -Name {0}".format(vm_name)
 
-    print('Pausing VM "{0}"'.format(vm_name))
     rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
+    return rs
 
 
-def start_vm(by_name, index):
+def start_vm(vm_name: str) -> Response:
     """
-    Start virtual machine
+    Start virtual machine.
 
     Args:
-        vm_index (int): The machine's index generated in the current cache
-    """
-    if by_name:
-        vm_name = index
-    else:
-        vms = load_vms_from_cache()
-        vm_name = vms[int(index)]['Name']
-
-    ps_script = "Start-VM -Name {0}".format(vm_name)
-
-    print('Starting VM "{0}"'.format(vm_name))
-    rs = run_ps(ps_script)
-
-    if rs.status_code != 0:
-        print(rs.std_err)
-        return False
-
-    print("Success")
-    return True
-
-
-def setup(configp):
-    """
-    Setup hvclient globals and create protocol with server host and credentials
-
-    Args:
-        configp (dict): Configuration from config file
-    """
-    global config
-    global vms_cache_filename
-
-    config = configp
-    vms_cache_filename = config['cache_file']
-
-
-def run_ps(ps):
-    """
-    Run powershell script on target machine
-
-    Args:
-        ps (str): Powershell script to run
-
+        vm_name: The virtual machine name.
     Returns:
-        Response: Object containing stderr, stdout and exit_status
+        Info obtained from remove hyper-v host.
+    """
+    ps_script = "Start-VM -Name {0}".format(vm_name)
+    rs = run_ps(ps_script)
+
+    return rs
+
+
+def run_ps(ps: str) -> Response:
+    """
+    Run powershell script on target machine.
+
+    Args:
+        ps: Powershell script to run.
+    Returns:
+        Response object containing stderr, stdout and exit_status.
     """
     func_d = {'ssh': run_cmd_ssh,
               'winrm': run_cmd_winrm}
@@ -371,15 +237,14 @@ def run_ps(ps):
     return rs
 
 
-def run_cmd_ssh(cmd):
+def run_cmd_ssh(cmd: str) -> Response:
     """
     Run batch script using ssh client.
 
     Args:
-        cmd (str): batch script to run
-
+        cmd: batch script to run.
     Returns:
-        Response: Object containing stderr, stdout and exit_status
+        Response object containing stderr, stdout and exit_status.
     """
     ssh_client = SSHClient()
     ssh_client.load_system_host_keys()
@@ -400,15 +265,14 @@ def run_cmd_ssh(cmd):
     return rs
 
 
-def run_cmd_winrm(cmd):
+def run_cmd_winrm(cmd: str) -> Response:
     """
     Run batch script using winrm client.
 
     Args:
-        cmd (str): batch script to run
-
+        cmd: batch script to run.
     Returns:
-        Response: Object containing stderr, stdout and exit_status
+        Response object containing stderr, stdout and exit_status.
     """
     client = Protocol(endpoint='http://{0}:5985/wsman'.format(config['host']),
                       transport='ntlm',

@@ -1,46 +1,42 @@
-from colorama import init, Fore
+"""
+Printer module. Formats messages to be printed in command line.
+"""
 from datetime import timedelta
 from modules.snaptree import create_tree
 from fnmatch import fnmatch
-import json
 
-
-init()
-states = {3: 'off',
+STATES = {3: 'off',
           2: 'running',
           9: 'paused',
           6: 'saved'}
 
 
-def print_vm_snaps(vm_name, rs):
+def print_vm_snaps(snaps_json: dict, vm_name: str):
     """
+    Print ascii tree of checkpoints.
+
+    Args:
+        snaps_json: Dict containing the table of checkpoints.
+        vm_name: Vm name to be shown as root of the tree.
     """
-    if rs.status_code != 0:
-        print('{}Error: {}{}'.format(Fore.RED, Fore.RESET, rs.std_err))
-        return False
-
-    try:
-        snaps_json = json.loads(rs.std_out.decode('latin-1'))
-    except Exception as e:
-        print("Virtual Machine {} has no snapshots: {}".format(vm_name, e))
-        return False
-
-    # If there is only one snap, make it a list
-    if isinstance(snaps_json, dict):
-        snaps_json = [snaps_json]
-
     t_snaps = create_tree(snaps_json, vm_name, f_pid="ParentSnapshotId",
                           f_id="Id",
                           f_label="Name",
                           f_ctime="CreationTime",
                           v_none=None,
                           colors=True)
-    print("{}-- Virtual Machine Snapshots --".format(Fore.GREEN))
-    print('{}{}'.format(Fore.RESET, t_snaps))
+    print("-- Virtual Machine Snapshots --")
+    print(t_snaps)
 
 
-def print_list_vms(vms_json, filter_vms):
+def print_list_vms(vms_json: dict, filter_vms: str):
     """
+    Print list of virtual machines.
+
+    Args:
+        vms_json: Dict containing the table of vms.
+        filter_vms: Filter to be applied at the output. Only the vms whose name
+            matches the filter will be shown.
     """
     # Listing
     print("-- Hyper-V Virtual Machine Listing --")
@@ -59,7 +55,7 @@ def print_list_vms(vms_json, filter_vms):
     # Listing
     for vm in vms_show:
         index = str(vms_json.index(vm)).rjust(3)
-        state = states.get(vm['State'], "unknown").ljust(7)
+        state = STATES.get(vm['State'], "unknown").ljust(7)
         name = str(vm['Name']).ljust(30)
         uptime = str(timedelta(hours=vm['Uptime']['TotalHours']))
         print("[{}] {} {} {}".format(index, state, name, uptime))
