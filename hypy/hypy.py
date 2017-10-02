@@ -50,9 +50,7 @@ def ls(ctx, name):
 @click.argument('index', required=False)
 @click.pass_context
 def snaps(ctx, name, index):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -71,9 +69,7 @@ def snaps(ctx, name, index):
 @click.argument('snap_name')
 @click.pass_context
 def restore(ctx, name, index, snap_name):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -89,9 +85,7 @@ def restore(ctx, name, index, snap_name):
 @click.argument('snap_name')
 @click.pass_context
 def delete(ctx, name, index, snap_name, r):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -106,9 +100,7 @@ def delete(ctx, name, index, snap_name, r):
 @click.argument('snap_name')
 @click.pass_context
 def create(ctx, name, index, snap_name):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -122,9 +114,7 @@ def create(ctx, name, index, snap_name):
 @click.argument('index', required=False)
 @click.pass_context
 def connect(ctx, name, index):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         vm_cache = cache.get_vm_by_index(index)
@@ -139,7 +129,7 @@ def connect(ctx, name, index):
     vm = hvclient.parse_result(rs)
     cache.update_cache(vm)
 
-    if vm['State'] != 2 and vm['State'] != 9:
+    if vm['State'] not in [2, 9]:
         rs = hvclient.start_vm(name)
         vm = hvclient.parse_result(rs)
 
@@ -151,9 +141,7 @@ def connect(ctx, name, index):
 @click.argument('index', required=False)
 @click.pass_context
 def start(ctx, name, index):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -169,9 +157,7 @@ def start(ctx, name, index):
 @click.argument('index', required=False)
 @click.pass_context
 def pause(ctx, name, index):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -187,9 +173,7 @@ def pause(ctx, name, index):
 @click.argument('index', required=False)
 @click.pass_context
 def resume(ctx, name, index):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -207,9 +191,7 @@ def resume(ctx, name, index):
 @click.argument('index', required=False)
 @click.pass_context
 def stop(ctx, name, index, force):
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        return
+    validate_input(ctx, name, index)
 
     if not name:
         name = cache.get_vm_by_index(index)['Name']
@@ -218,6 +200,13 @@ def stop(ctx, name, index, force):
     rs = hvclient.get_vm(name)
     vm = hvclient.parse_result(rs)
     cache.update_cache(vm)
+
+
+def validate_input(ctx, name, index):
+    """Additional input parameter validation"""
+    if not (name or index) or (name and index):
+        click.echo(ctx.get_help())
+        exit(1)
 
 
 if __name__ == "__main__":

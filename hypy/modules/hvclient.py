@@ -26,7 +26,7 @@ def connect(vm_name: str, vm_id: str, vm_index: str):
     if platform.uname()[0] == "Windows":
         freerdp_bin = "wfreerdp.exe"
     else:
-        freerdp_bin = "xfreerdp"
+        freerdp_bin = "ixfreerdp"
 
     cmd = [freerdp_bin, '/v:{0}'.format(host),
                         '/vmconnect:{0}'.format(vm_id),
@@ -142,13 +142,13 @@ def parse_result(rs: Response) -> dict:
     """
     if rs.status_code != 0:
         print(rs.std_err)
-        return False
+        exit(1)
 
     try:
         rs_json = json.loads(rs.std_out.decode('latin-1'))
     except Exception as e:
         print("Error parsing remote response: {}".format(e))
-        return False
+        exit(1)
 
     # If there is only one element, make it a list
     if isinstance(rs_json, dict):

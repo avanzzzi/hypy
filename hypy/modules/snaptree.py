@@ -41,7 +41,7 @@ def create_tree(table: dict,
         f_label: Field with the label of the node.
         f_ctime: Field with the timestamp creation date.
         v_none: Value to be used for empty fields.
-        colors: Use colots in the tree output.
+        colors: Use colors in the tree output.
     Returns:
         A string containing the tree of snapshots
     """

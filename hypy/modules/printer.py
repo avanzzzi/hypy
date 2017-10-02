@@ -19,7 +19,9 @@ def print_vm_snaps(snaps_json: dict, vm_name: str):
         snaps_json: Dict containing the table of checkpoints.
         vm_name: Vm name to be shown as root of the tree.
     """
-    t_snaps = create_tree(snaps_json, vm_name, f_pid="ParentSnapshotId",
+    t_snaps = create_tree(snaps_json,
+                          vm_name,
+                          f_pid="ParentSnapshotId",
                           f_id="Id",
                           f_label="Name",
                           f_ctime="CreationTime",
@@ -39,7 +41,7 @@ def print_list_vms(vms_json: dict, filter_vms: str):
             matches the filter will be shown.
     """
     # Listing
-    print("-- Hyper-V Virtual Machine Listing --")
+    # print("-- Hyper-V Virtual Machine Listing --")
 
     # Header
     print("{} {} {} {}".format("Index".rjust(5),
