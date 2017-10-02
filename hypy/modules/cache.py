@@ -19,7 +19,7 @@ def get_vm_by_name(name: str) -> dict:
         The vm info found in the cache.
     """
     vms = list_vms()
-    vm = [vm for vm in vms if vm['Name'] == name]
+    vm = [vm for vm in vms if vm['Name'] == name][0]
     vm['index'] = vms.index(vm)
     return vm
 
@@ -34,7 +34,9 @@ def get_vm_by_index(index: str) -> dict:
         The vm info found in the cache.
     """
     vms = list_vms()
-    return vms[int(index)]
+    vm = vms[int(index)]
+    vm['index'] = index
+    return vm
 
 
 def list_vms() -> list:

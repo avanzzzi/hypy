@@ -55,12 +55,10 @@ def snaps(ctx, name, index):
     if not name:
         name = cache.get_vm_by_index(index)['Name']
 
-    rs = hvclient.get_vm(name)
-    vm = hvclient.parse_result(rs)
-    cache.update_cache(vm)
-    rs_snaps = hvclient.list_vm_snaps(vm[0]['Name'])
+    ctx.invoke(list_vms, sync=True, name=name)
+    rs_snaps = hvclient.list_vm_snaps(name)
     snaps = hvclient.parse_result(rs_snaps)
-    printer.print_vm_snaps(snaps, vm[0]['Name'])
+    printer.print_vm_snaps(snaps, name)
 
 
 @main.command(help='Restore virtual machine snapshot')
@@ -129,11 +127,11 @@ def connect(ctx, name, index):
     vm = hvclient.parse_result(rs)
     cache.update_cache(vm)
 
-    if vm['State'] not in [2, 9]:
-        rs = hvclient.start_vm(name)
+    if vm[0]['State'] not in [2, 9]:
+        rs = hvclient.start_vm(vm_name)
         vm = hvclient.parse_result(rs)
 
-    hvclient.connect(vm_name, vm_id, vm_index)
+    hvclient.connect(vm_id, vm_name, vm_index)
 
 
 @main.command(help='Start virtual machine identified by index')
@@ -146,10 +144,9 @@ def start(ctx, name, index):
     if not name:
         name = cache.get_vm_by_index(index)['Name']
 
+    ctx.invoke(list_vms, sync=False, name=name)
     hvclient.start_vm(name)
-    rs = hvclient.get_vm(name)
-    vm = hvclient.parse_result(rs)
-    cache.update_cache(vm)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='Pause virtual machine identified by index')
@@ -162,10 +159,9 @@ def pause(ctx, name, index):
     if not name:
         name = cache.get_vm_by_index(index)['Name']
 
+    ctx.invoke(list_vms, sync=False, name=name)
     hvclient.pause_vm(name)
-    rs = hvclient.get_vm(name)
-    vm = hvclient.parse_result(rs)
-    cache.update_cache(vm)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='Resume (paused) virtual machine identified by index')
@@ -178,10 +174,9 @@ def resume(ctx, name, index):
     if not name:
         name = cache.get_vm_by_index(index)['Name']
 
+    ctx.invoke(list_vms, sync=False, name=name)
     hvclient.resume_vm(name)
-    rs = hvclient.get_vm(name)
-    vm = hvclient.parse_result(rs)
-    cache.update_cache(vm)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='Stop virtual machine identified by index')
@@ -196,10 +191,9 @@ def stop(ctx, name, index, force):
     if not name:
         name = cache.get_vm_by_index(index)['Name']
 
+    ctx.invoke(list_vms, sync=False, name=name)
     hvclient.stop_vm(name, force)
-    rs = hvclient.get_vm(name)
-    vm = hvclient.parse_result(rs)
-    cache.update_cache(vm)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 def validate_input(ctx, name, index):

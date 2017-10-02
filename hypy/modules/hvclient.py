@@ -10,7 +10,7 @@ from base64 import b64encode
 config = None
 
 
-def connect(vm_name: str, vm_id: str, vm_index: str):
+def connect(vm_id: str, vm_name: str, vm_index: str):
     """
     Connect to the virtual machine.
 
@@ -26,7 +26,7 @@ def connect(vm_name: str, vm_id: str, vm_index: str):
     if platform.uname()[0] == "Windows":
         freerdp_bin = "wfreerdp.exe"
     else:
-        freerdp_bin = "ixfreerdp"
+        freerdp_bin = "xfreerdp"
 
     cmd = [freerdp_bin, '/v:{0}'.format(host),
                         '/vmconnect:{0}'.format(vm_id),
@@ -147,7 +147,7 @@ def parse_result(rs: Response) -> dict:
     try:
         rs_json = json.loads(rs.std_out.decode('latin-1'))
     except Exception as e:
-        print("Error parsing remote response: {}".format(e))
+        print("No results: {}".format(e))
         exit(1)
 
     # If there is only one element, make it a list
