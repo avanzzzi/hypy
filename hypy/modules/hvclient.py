@@ -28,10 +28,10 @@ def connect(vm_id: str, vm_name: str, vm_index: str):
     else:
         freerdp_bin = "xfreerdp"
 
-    cmd = [freerdp_bin, '/v:{0}'.format(host),
-                        '/vmconnect:{0}'.format(vm_id),
-                        '/u:{0}'.format(user),
-                        '/p:{0}'.format(passw),
+    cmd = [freerdp_bin, '/v:{}'.format(host),
+                        '/vmconnect:{}'.format(vm_id),
+                        '/u:{}'.format(user),
+                        '/p:{}'.format(passw),
                         '/t:{} [{}] {}'.format(host, vm_index, vm_name),
                         '/cert-ignore']
 
@@ -55,7 +55,7 @@ def get_vm(vm_name: str) -> Response:
     """
     if not vm_name:
         vm_name = '*'
-    ps_script = "Get-VM -Name {} | Select Name,Id,State,Uptime | sort Name | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VM -Name {} | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json".format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -70,7 +70,7 @@ def list_vm_snaps(vm_name: str) -> Response:
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = "Get-VMSnapshot -VMName {0} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VMSnapshot -VMName {} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -86,7 +86,7 @@ def restore_vm_snap(vm_name: str, snap_name: str) -> Response:
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = 'Restore-VMSnapshot -Name "{0}" -VMName {1} -Confirm:$false'.format(snap_name, vm_name)
+    ps_script = 'Restore-VMSnapshot -Name "{}" -VMName {} -Confirm:$false'.format(snap_name, vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -105,7 +105,7 @@ def remove_vm_snapshot(vm_name: str, snap_name: str,
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = 'Remove-VMSnapshot -VMName "{0}" -Name "{1}"'.format(vm_name,
+    ps_script = 'Remove-VMSnapshot -VMName "{}" -Name "{}"'.format(vm_name,
                                                                      snap_name)
     if recursive:
         ps_script += " -IncludeAllChildSnapshots"
@@ -125,7 +125,7 @@ def create_vm_snapshot(vm_name: str, snap_name: str) -> Response:
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = 'Checkpoint-VM -Name "{0}" -SnapshotName "{1}" -Confirm:$false'.format(vm_name, snap_name)
+    ps_script = 'Checkpoint-VM -Name "{}" -SnapshotName "{}" -Confirm:$false'.format(vm_name, snap_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -144,17 +144,15 @@ def parse_result(rs: Response) -> dict:
         print(rs.std_err)
         exit(1)
 
-    try:
+    if rs.std_out:
         rs_json = json.loads(rs.std_out.decode('latin-1'))
-    except Exception as e:
-        print("No results: {}".format(e))
-        exit(1)
 
-    # If there is only one element, make it a list
-    if isinstance(rs_json, dict):
-        rs_json = [rs_json]
+        # If there is only one element, make it a list
+        if isinstance(rs_json, dict):
+            rs_json = [rs_json]
 
-    return rs_json
+        return rs_json
+    return None
 
 
 def stop_vm(vm_name: str, force: bool=False) -> Response:
@@ -184,7 +182,7 @@ def resume_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = "Resume-VM -Name {0}".format(vm_name)
+    ps_script = "Resume-VM -Name {}".format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -199,7 +197,7 @@ def pause_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = "Suspend-VM -Name {0}".format(vm_name)
+    ps_script = "Suspend-VM -Name {}".format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -214,7 +212,7 @@ def start_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remove hyper-v host.
     """
-    ps_script = "Start-VM -Name {0}".format(vm_name)
+    ps_script = "Start-VM -Name {}".format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -233,7 +231,7 @@ def run_ps(ps: str) -> Response:
               'winrm': run_cmd_winrm}
     proto = config['protocol']
     encoded_ps = b64encode(ps.encode('utf_16_le')).decode('ascii')
-    rs = func_d[proto]('powershell -encodedcommand {0}'.format(encoded_ps))
+    rs = func_d[proto]('powershell -encodedcommand {}'.format(encoded_ps))
     return rs
 
 
@@ -274,10 +272,10 @@ def run_cmd_winrm(cmd: str) -> Response:
     Returns:
         Response object containing stderr, stdout and exit_status.
     """
-    client = Protocol(endpoint='http://{0}:5985/wsman'.format(config['host']),
+    client = Protocol(endpoint='http://{}:5985/wsman'.format(config['host']),
                       transport='ntlm',
-                      username='{0}\{1}'.format(config['domain'],
-                                                config['user']),
+                      username='{}\{}'.format(config['domain'],
+                                              config['user']),
                       password=config['pass'],
                       server_cert_validation='ignore')
 

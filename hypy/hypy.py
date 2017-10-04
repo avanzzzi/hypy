@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import click
+from time import sleep
 from modules import hvclient
 from modules import printer
 from modules import cache
@@ -55,10 +56,14 @@ def snaps(ctx, name, index):
     if not name:
         name = cache.get_vm_by_index(index)['Name']
 
-    ctx.invoke(list_vms, sync=True, name=name)
+    rs = hvclient.get_vm(name)
+    vms = hvclient.parse_result(rs)
+    cache.update_cache(vms)
+    cache_vms = cache.list_vms()
+    printer.print_list_vms(cache_vms, name)
     rs_snaps = hvclient.list_vm_snaps(name)
     snaps = hvclient.parse_result(rs_snaps)
-    printer.print_vm_snaps(snaps, name)
+    printer.print_vm_snaps(snaps, name, vms[0]['ParentSnapshotName'])
 
 
 @main.command(help='Restore virtual machine snapshot')
@@ -130,6 +135,7 @@ def connect(ctx, name, index):
     if vm[0]['State'] not in [2, 9]:
         rs = hvclient.start_vm(vm_name)
         vm = hvclient.parse_result(rs)
+        sleep(5)
 
     hvclient.connect(vm_id, vm_name, vm_index)
 
@@ -145,7 +151,8 @@ def start(ctx, name, index):
         name = cache.get_vm_by_index(index)['Name']
 
     ctx.invoke(list_vms, sync=False, name=name)
-    hvclient.start_vm(name)
+    rs = hvclient.start_vm(name)
+    hvclient.parse_result(rs)
     ctx.invoke(list_vms, sync=True, name=name)
 
 
@@ -160,7 +167,8 @@ def pause(ctx, name, index):
         name = cache.get_vm_by_index(index)['Name']
 
     ctx.invoke(list_vms, sync=False, name=name)
-    hvclient.pause_vm(name)
+    rs = hvclient.pause_vm(name)
+    hvclient.parse_result(rs)
     ctx.invoke(list_vms, sync=True, name=name)
 
 
@@ -175,7 +183,8 @@ def resume(ctx, name, index):
         name = cache.get_vm_by_index(index)['Name']
 
     ctx.invoke(list_vms, sync=False, name=name)
-    hvclient.resume_vm(name)
+    rs = hvclient.resume_vm(name)
+    hvclient.parse_result(rs)
     ctx.invoke(list_vms, sync=True, name=name)
 
 
@@ -192,7 +201,8 @@ def stop(ctx, name, index, force):
         name = cache.get_vm_by_index(index)['Name']
 
     ctx.invoke(list_vms, sync=False, name=name)
-    hvclient.stop_vm(name, force)
+    rs = hvclient.stop_vm(name, force)
+    hvclient.parse_result(rs)
     ctx.invoke(list_vms, sync=True, name=name)
 
 

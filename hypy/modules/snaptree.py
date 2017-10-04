@@ -24,6 +24,7 @@ def convert_dt(creation_time: str) -> str:
 
 def create_tree(table: dict,
                 root: str,
+                mark: str,
                 f_pid: str="pid",
                 f_id: str="id",
                 f_label: str="item",
@@ -36,6 +37,7 @@ def create_tree(table: dict,
     Args:
         table: List of checkpoints as a table.
         root: Root label of the tree.
+        mark: Current snapshot name. Mark the element with an '*'
         f_pid: Field of the table that contains the parent id of the node.
         f_id: Field of the table that contains the id of the node.
         f_label: Field with the label of the node.
@@ -59,14 +61,11 @@ def create_tree(table: dict,
     tr = LeftAligned()
     tr_tree = tr(tree)
 
-    if not colors:
-        for cell in table:
-            tr_tree = tr_tree.replace(cell[f_id],
-                                      "{} ({})".format(
-                                          cell[f_label],
-                                          convert_dt(cell[f_ctime])))
-    else:
-        for cell in table:
+    for cell in table:
+        if cell[f_label] == mark:
+            cell[f_label] = "{}*".format(cell[f_label])
+
+        if colors:
             tr_tree = tr_tree.replace(cell[f_id],
                                       "{}{} {}({}){}".format(
                                           Fore.LIGHTWHITE_EX,
@@ -74,7 +73,11 @@ def create_tree(table: dict,
                                           Fore.CYAN,
                                           convert_dt(cell[f_ctime]),
                                           Fore.RESET))
-
+        else:
+            tr_tree = tr_tree.replace(cell[f_id],
+                                      "{} ({})".format(
+                                          cell[f_label],
+                                          convert_dt(cell[f_ctime])))
     return tr_tree
 
 
