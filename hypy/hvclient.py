@@ -292,7 +292,7 @@ def get_vm(vm_index):
 
     vm_name = vms[vm_index]['Name']
 
-    ps_script = "Get-VM -Name {0} | Select Name,Id,State | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VM -Name '{0}' | Select Name,Id,State | ConvertTo-Json".format(vm_name)
     rs = run_ps(ps_script)
 
     if rs.status_code != 0:
