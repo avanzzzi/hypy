@@ -24,9 +24,14 @@ FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is wo
 
 Look into https://github.com/FreeRDP/FreeRDP for more instructions.
 
+## Instalation
+Hypy can be installed with pip
+```
+pip3 install git+https://github.com/avanzzzi/hypy.git@setup
+```
+
 ## Configuration
-To configure Hypy, create the file '~/.hypy.conf'.
-You can use hypy.conf.example that comes with the package to get a starting point or use the contents below.
+To configure Hypy, create the file '~/.hypy.conf'. You can use hypy.conf.example that comes with the package to get a starting point or use the contents below.
 You must have write permissions to the path pointed by cache_file.
 These options can be overriden in the command line if needed.
 ```ini
