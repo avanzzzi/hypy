@@ -2,3 +2,4 @@ pywinrm
 click
 asciitree
 paramiko
+colorama
