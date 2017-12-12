@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-import configparser
-import hvclient
 import click
+from time import sleep
+from modules import hvclient
+from modules import printer
+from modules import cache
+from modules import config
 
 
 @click.group()
@@ -11,128 +14,188 @@ import click
 @click.option('passw', '--pass', '-p', help='Password in hyper-v server')
 @click.option('--domain', '-d', help='Domain name')
 @click.option('--host', '-m', help='Hyper-V server hostname/ip address')
-@click.option('--proto', '-t', help='Protocol to be used: ssh or winrm')
+@click.option('--proto', '-t', help='Protocol to be used',
+              type=click.Choice(['ssh', 'winrm']))
 def main(user, passw, domain, host, proto):
     """
     Multiplataform Hyper-V Manager using Python and FreeRDP
     """
-    load_config(user, passw, domain, host, proto)
+    config.load(user, passw, domain, host, proto)
+    hvclient.config = config.configuration
+    cache.vms_cache_filename = config.configuration['cache_file']
+    cache.sync_interval = config.configuration['sync_interval']
 
 
 @main.command("list", help='List virtual machines and its indexes')
-@click.option('--sync', '-s', is_flag=True, help='Syncronize with server\
- updating local cache')
-def list_vms(sync):
-    hvclient.update_all_cache(sync)
-    hvclient.list_vms()
+@click.option('--sync', '-s', is_flag=True, default=False,
+              help='Syncronize with server updating local cache')
+@click.option('--name', '-n', help='Filter virtual machines by name')
+def list_vms(sync, name):
+    if sync or cache.need_update():
+        rs = hvclient.get_vm(name)
+        vms = hvclient.parse_result(rs)
+        cache.update_cache(vms)
+    cache_vms = cache.list_vms()
+    printer.print_list_vms(cache_vms, name)
 
 
 @main.command("ls", help='List updated virtual machines and its indexes')
+@click.option('--name', '-n', help='Filter virtual machines by name')
 @click.pass_context
-def ls(ctx):
-    ctx.invoke(list_vms, sync=True)
+def ls(ctx, name):
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='List virtual machine snapshots')
-@click.argument('index')
-def snaps(index):
-    hvclient.list_vm_snaps(int(index))
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+def snaps(by_name, ident):
+    name = get_name(by_name, ident)
+    rs = hvclient.get_vm(name)
+    vms = hvclient.parse_result(rs)
+    cache.update_cache(vms)
+    cache_vms = cache.list_vms()
+    printer.print_list_vms(cache_vms, name)
+    rs_snaps = hvclient.list_vm_snaps(name)
+    snaps = hvclient.parse_result(rs_snaps)
+    printer.print_vm_snaps(snaps, name, vms[0]['ParentSnapshotName'])
 
 
 @main.command(help='Restore virtual machine snapshot')
-@click.argument('index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.argument('snap_name')
-def restore(index, snap_name):
-    hvclient.restore_vm_snap(int(index), snap_name)
+def restore(by_name, ident, snap_name):
+    name = get_name(by_name, ident)
+    rs = hvclient.restore_vm_snap(name, snap_name)
+    hvclient.parse_result(rs)
 
 
 @main.command(help="Delete a machine's snapshot by name")
-@click.argument('index')
-@click.argument('snap_name')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.option('-r', is_flag=True, help="Remove snapshot's children as well")
-def delete(index, snap_name, r):
-    hvclient.remove_vm_snapshot(int(index), snap_name, r)
+@click.argument('snap_name')
+def delete(by_name, r, ident, snap_name):
+    name = get_name(by_name, ident)
+    rs = hvclient.remove_vm_snapshot(name, snap_name, r)
+    hvclient.parse_result(rs)
 
 
 @main.command(help="Create a new snapshot with vm's current state")
-@click.argument('index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.argument('snap_name')
-def create(index, snap_name):
-    hvclient.create_vm_snapshot(int(index), snap_name)
+def create(by_name, ident, snap_name):
+    name = get_name(by_name, ident)
+    rs = hvclient.create_vm_snapshot(name, snap_name)
+    hvclient.parse_result(rs)
 
 
 @main.command(help="Connect to virtual machine identified by index")
-@click.argument('index')
-def connect(index):
-    hvclient.connect(int(index))
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+def connect(by_name, ident):
+    name = get_name(by_name, ident)
+    vm_cache = cache.get_vm_by_name(name)
+
+    vm_name = vm_cache['Name']
+    vm_index = vm_cache['index']
+    vm_id = vm_cache['Id']
+
+    rs = hvclient.get_vm(vm_name)
+    vm = hvclient.parse_result(rs)
+    cache.update_cache(vm)
+
+    if vm[0]['State'] not in [2, 9]:
+        rs = hvclient.start_vm(vm_name)
+        vm = hvclient.parse_result(rs)
+        sleep(5)
+
+    hvclient.connect(vm_id, vm_name, vm_index)
 
 
 @main.command(help='Start virtual machine identified by index')
-@click.argument('index')
-def start(index):
-    hvclient.start_vm(int(index))
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def start(ctx, by_name, ident):
+    name = get_name(by_name, ident)
+    ctx.invoke(list_vms, sync=False, name=name)
+    rs = hvclient.start_vm(name)
+    hvclient.parse_result(rs)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='Pause virtual machine identified by index')
-@click.argument('index')
-def pause(index):
-    hvclient.pause_vm(int(index))
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def pause(ctx, by_name, ident):
+    name = get_name(by_name, ident)
+    ctx.invoke(list_vms, sync=False, name=name)
+    rs = hvclient.pause_vm(name)
+    hvclient.parse_result(rs)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='Resume (paused) virtual machine identified by index')
-@click.argument('index')
-def resume(index):
-    hvclient.resume_vm(int(index))
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def resume(ctx, by_name, ident):
+    name = get_name(by_name, ident)
+    ctx.invoke(list_vms, sync=False, name=name)
+    rs = hvclient.resume_vm(name)
+    hvclient.parse_result(rs)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
 @main.command(help='Stop virtual machine identified by index')
-@click.argument('index')
 @click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest\
  five minutes to save data, then forces a shutdown')
-def stop(index, force):
-    hvclient.stop_vm(int(index), force)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def stop(ctx, by_name, ident, force):
+    name = get_name(by_name, ident)
+    ctx.invoke(list_vms, sync=False, name=name)
+    rs = hvclient.stop_vm(name, force)
+    hvclient.parse_result(rs)
+    ctx.invoke(list_vms, sync=True, name=name)
 
 
-def load_config(user, passw, domain, host, proto):
-    """
-    Read config file and sends the resultant dict to setup hvclient
-    TODO: Validate options
-    """
-    try:
-        config = configparser.ConfigParser()
-        config.read('hypy.conf')
+@main.command(help='Save virtual machine identified by index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def save(ctx, by_name, ident):
+    name = get_name(by_name, ident)
+    ctx.invoke(list_vms, sync=False, name=name)
+    rs = hvclient.save_vm(name)
+    hvclient.parse_result(rs)
+    ctx.invoke(list_vms, sync=True, name=name)
 
-        credentials = config['credentials']
 
-        configuration = {'user': credentials['user'],
-                         'pass': credentials['pass'],
-                         'domain': credentials['domain'],
-                         'host': credentials['host']}
+def get_name(by_name, ident):
+    """Retrieve name or name by index based on user input."""
+    if by_name:
+        name = ident
+    else:
+        index = ident
+        name = cache.get_vm_by_index(index)['Name']
 
-        if user is not None:
-            configuration['user'] = user
-        if passw is not None:
-            configuration['pass'] = passw
-        if domain is not None:
-            configuration['domain'] = domain
-        if host is not None:
-            configuration['host'] = host
-
-        options = config['options']
-
-        configuration['cache_file'] = options['cache_file']
-        configuration['sync_interval'] = options['sync_interval']
-        configuration['protocol'] = options['protocol']
-        configuration['ssh_port'] = options['ssh_port']
-
-        if proto is not None:
-            configuration['protocol'] = proto
-
-        hvclient.setup(configuration)
-
-    except KeyError:
-        print("Please, configure your credentials file - hypy.conf")
-        exit(1)
+    return name
 
 
 if __name__ == "__main__":
