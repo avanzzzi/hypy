@@ -47,15 +47,11 @@ def ls(ctx, name):
 
 
 @main.command(help='List virtual machine snapshots')
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
-@click.pass_context
-def snaps(ctx, name, index):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+def snaps(by_name, ident):
+    name = get_name(by_name, ident)
     rs = hvclient.get_vm(name)
     vms = hvclient.parse_result(rs)
     cache.update_cache(vms)
@@ -67,62 +63,46 @@ def snaps(ctx, name, index):
 
 
 @main.command(help='Restore virtual machine snapshot')
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.argument('snap_name')
-@click.pass_context
-def restore(ctx, name, index, snap_name):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def restore(by_name, ident, snap_name):
+    name = get_name(by_name, ident)
     rs = hvclient.restore_vm_snap(name, snap_name)
     hvclient.parse_result(rs)
 
 
 @main.command(help="Delete a machine's snapshot by name")
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.option('-r', is_flag=True, help="Remove snapshot's children as well")
 @click.argument('snap_name')
-@click.pass_context
-def delete(ctx, name, index, snap_name, r):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def delete(by_name, r, ident, snap_name):
+    name = get_name(by_name, ident)
     rs = hvclient.remove_vm_snapshot(name, snap_name, r)
     hvclient.parse_result(rs)
 
 
 @main.command(help="Create a new snapshot with vm's current state")
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.argument('snap_name')
-@click.pass_context
-def create(ctx, name, index, snap_name):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def create(by_name, ident, snap_name):
+    name = get_name(by_name, ident)
     rs = hvclient.create_vm_snapshot(name, snap_name)
     hvclient.parse_result(rs)
 
 
 @main.command(help="Connect to virtual machine identified by index")
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
-@click.pass_context
-def connect(ctx, name, index):
-    validate_input(ctx, name, index)
-
-    if not name:
-        vm_cache = cache.get_vm_by_index(index)
-    else:
-        vm_cache = cache.get_vm_by_name(name)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+def connect(by_name, ident):
+    name = get_name(by_name, ident)
+    vm_cache = cache.get_vm_by_name(name)
 
     vm_name = vm_cache['Name']
     vm_index = vm_cache['index']
@@ -141,15 +121,12 @@ def connect(ctx, name, index):
 
 
 @main.command(help='Start virtual machine identified by index')
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.pass_context
-def start(ctx, name, index):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def start(ctx, by_name, ident):
+    name = get_name(by_name, ident)
     ctx.invoke(list_vms, sync=False, name=name)
     rs = hvclient.start_vm(name)
     hvclient.parse_result(rs)
@@ -157,15 +134,12 @@ def start(ctx, name, index):
 
 
 @main.command(help='Pause virtual machine identified by index')
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.pass_context
-def pause(ctx, name, index):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def pause(ctx, by_name, ident):
+    name = get_name(by_name, ident)
     ctx.invoke(list_vms, sync=False, name=name)
     rs = hvclient.pause_vm(name)
     hvclient.parse_result(rs)
@@ -173,15 +147,12 @@ def pause(ctx, name, index):
 
 
 @main.command(help='Resume (paused) virtual machine identified by index')
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.pass_context
-def resume(ctx, name, index):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def resume(ctx, by_name, ident):
+    name = get_name(by_name, ident)
     ctx.invoke(list_vms, sync=False, name=name)
     rs = hvclient.resume_vm(name)
     hvclient.parse_result(rs)
@@ -191,26 +162,40 @@ def resume(ctx, name, index):
 @main.command(help='Stop virtual machine identified by index')
 @click.option('--force', '-f', is_flag=True, help='Hyper-V gives the guest\
  five minutes to save data, then forces a shutdown')
-@click.option('--name', '-n', help='Use vm name instead of index')
-@click.argument('index', required=False)
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
 @click.pass_context
-def stop(ctx, name, index, force):
-    validate_input(ctx, name, index)
-
-    if not name:
-        name = cache.get_vm_by_index(index)['Name']
-
+def stop(ctx, by_name, ident, force):
+    name = get_name(by_name, ident)
     ctx.invoke(list_vms, sync=False, name=name)
     rs = hvclient.stop_vm(name, force)
     hvclient.parse_result(rs)
     ctx.invoke(list_vms, sync=True, name=name)
 
 
-def validate_input(ctx, name, index):
-    """Additional input parameter validation"""
-    if not (name or index) or (name and index):
-        click.echo(ctx.get_help())
-        exit(1)
+@main.command(help='Save virtual machine identified by index')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def save(ctx, by_name, ident):
+    name = get_name(by_name, ident)
+    ctx.invoke(list_vms, sync=False, name=name)
+    rs = hvclient.save_vm(name)
+    hvclient.parse_result(rs)
+    ctx.invoke(list_vms, sync=True, name=name)
+
+
+def get_name(by_name, ident):
+    """Retrieve name or name by index based on user input."""
+    if by_name:
+        name = ident
+    else:
+        index = ident
+        name = cache.get_vm_by_index(index)['Name']
+
+    return name
 
 
 if __name__ == "__main__":

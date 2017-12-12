@@ -55,7 +55,7 @@ def get_vm(vm_name: str) -> Response:
     """
     if not vm_name:
         vm_name = '*'
-    ps_script = "Get-VM -Name {} | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VM -Name '{}' | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json".format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -183,6 +183,21 @@ def resume_vm(vm_name: str) -> Response:
         Info obtained from remove hyper-v host.
     """
     ps_script = "Resume-VM -Name {}".format(vm_name)
+
+    rs = run_ps(ps_script)
+    return rs
+
+
+def save_vm(vm_name: str) -> Response:
+    """
+    Save (Hibernate) virtual machine state.
+
+    Args:
+        vm_name: The virtual machine name.
+    Returns:
+        Info obtained from remove hyper-v host.
+    """
+    ps_script = "Save-VM -Name {}".format(vm_name)
 
     rs = run_ps(ps_script)
     return rs

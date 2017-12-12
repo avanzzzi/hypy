@@ -30,8 +30,7 @@ def print_vm_snaps(snaps_json: dict, vm_name: str, current_snap: str):
                               f_id="Id",
                               f_label="Name",
                               f_ctime="CreationTime",
-                              v_none=None,
-                              colors=True)
+                              v_none=None)
         print("-- Virtual Machine Snapshots --")
         print(t_snaps)
     else:

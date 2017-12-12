@@ -5,13 +5,13 @@
 
 Multiplataform Hyper-V Manager using Python and FreeRDP
 
-## How HYPY works?
-Hypy uses winrm to comunicate with hyper-v server shell and sends powershell commands to interact with the virtual machines. Using Powershell, HYPY can get Name, ID and state of virtual machines. Therefore, HYPY call freeRDP with vm-id and credentials, using settings in `.conf` file to connect the vm.
+## How hypy works?
+Hypy uses winrm or ssh to comunicate with hyper-v server shell and sends powershell commands to interact with the virtual machines. To access the virtual machines, hypy uses freeRDP.
 
 ## Pre-requisites
 ### WinRM
 Hypy uses winrm to communicate with the hyper-v host, so it must be enabled and accepting connections.
-https://github.com/diyan/pywinrm has a session explaining how to Enable WinRM on the remote host.
+https://github.com/diyan/pywinrm has a session explaining how to enable WinRM on the remote host.
 
 ### SSH
 As an alternative to winrm, you can setup a SSH server on the hyper-v host. Passing protocol parameter in command line or setting ssh in the protocol option.
@@ -24,9 +24,10 @@ FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is wo
 
 Look into https://github.com/FreeRDP/FreeRDP for more instructions.
 
-
 ## Configuration
-To configure Hypy, change the file 'hypy.conf'
+To configure Hypy, change the file 'hypy.conf'.
+You must have write permissions to the path pointed by cache_file.
+These options can be overriden in the command line if needed.
 ```ini
 [credentials]
 host = <server name in domain>
@@ -40,10 +41,7 @@ ssh_port = 22
 cache_file = <name of cache file>
 sync_interval = <interval in hours to make new cache file>
 ```
-You must have write permissions to the path pointed by cache_file
-
 ## usage
-If you don't know how to use hypy, you can use `hypy.py --help`
 ```
 hypy --help
 Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
@@ -51,12 +49,12 @@ Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
   Multiplataform Hyper-V Manager using Python and FreeRDP
 
 Options:
-  -u, --user TEXT    Username in hyper-v server
-  -p, --pass TEXT    Password in hyper-v server
-  -d, --domain TEXT  Domain name
-  -m, --host TEXT    Hyper-V server hostname/ip address
-  -t, --proto TEXT   Protocol to be used: ssh or winrm
-  --help             Show this message and exit.
+  -u, --user TEXT          Username in hyper-v server
+  -p, --pass TEXT          Password in hyper-v server
+  -d, --domain TEXT        Domain name
+  -m, --host TEXT          Hyper-V server hostname/ip address
+  -t, --proto [ssh|winrm]  Protocol to be used
+  --help                   Show this message and exit.
 
 Commands:
   connect  Connect to virtual machine identified by...
@@ -67,6 +65,7 @@ Commands:
   pause    Pause virtual machine identified by index
   restore  Restore virtual machine snapshot
   resume   Resume (paused) virtual machine identified by...
+  save     Save virtual machine identified by index
   snaps    List virtual machine snapshots
   start    Start virtual machine identified by index
   stop     Stop virtual machine identified by index
@@ -74,19 +73,20 @@ Commands:
 If you need help on any subcommand, run `hypy.py COMMAND --help`
 
 ### list
+Hypy will create a cache with indexes for each machine. These indexes are used by other hypy commands to interact with the virtual machines.
+If your cache is older than the duration specified in sync_interval, a new cache will be created, so the machine's states will be updated.
+To force an cache update use the sync parameter.
 ```
-hypy.py list --help
+hypy list --help
 Usage: hypy.py list [OPTIONS]
 
   List virtual machines and its indexes
 
 Options:
-  -s, --sync  Syncronize with server updating local cache
-  --help      Show this message and exit.
+  -s, --sync       Syncronize with server updating local cache
+  -n, --name TEXT  Filter virtual machines by name
+  --help           Show this message and exit.
 ```
-Hypy will create a cache with indexes for each machine. These indexes are used by other hypy commands to interact with the virtual machines.
-If your cache is older than the duration specified in sync_interval, a new cache will be created, so the machine's states will be updated.
-To force an cache update use the sync parameter.
 
 A machine listing would look like this:
 ```
@@ -104,96 +104,129 @@ Index State   Name                           Uptime
 [  9] off     MACHINE 010                    0:00:00
 [ 10] off     MACHINE 011                    0:00:00
 ```
+### ls
+The hypy command `ls` is a shortcut to `list -s`
 ### connect
+Hypy will check the vm state before connecting, starting it if necessary.
 ```
 hypy connect --help
-Usage: hypy.py connect [OPTIONS] INDEX
+Usage: hypy.py connect [OPTIONS] IDENT
 
   Connect to virtual machine identified by index
 
 Options:
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
 ```
 ### create
 ```
 hypy create --help
-Usage: hypy.py create [OPTIONS] INDEX SNAP_NAME
+Usage: hypy.py create [OPTIONS] IDENT SNAP_NAME
 
   Create a new snapshot with vm's current state
 
 Options:
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
 ```
 ### delete
 ```
 hypy delete --help
-Usage: hypy.py delete [OPTIONS] INDEX SNAP_NAME
+Usage: hypy.py delete [OPTIONS] IDENT SNAP_NAME
 
   Delete a machine's snapshot by name
 
 Options:
-  -r      Remove snapshot's children as well
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  -r          Remove snapshot's children as well
+  --help      Show this message and exit.
 ```
 ### restore
 ```
 hypy restore --help
-Usage: hypy.py restore [OPTIONS] INDEX SNAP_NAME
+Usage: hypy.py restore [OPTIONS] IDENT SNAP_NAME
 
   Restore virtual machine snapshot
 
 Options:
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
 ```
 ### snaps
 ```
 hypy snaps --help
-Usage: hypy.py snaps [OPTIONS] INDEX
+Usage: hypy.py snaps [OPTIONS] IDENT
 
   List virtual machine snapshots
 
 Options:
-  --help  Show this message and exit
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
+```
+A snap listing would look like this, the `*` marks the current snapshot.
+```
+hypy snaps -n "MACHINE 001"
+Index State   Name                           Uptime
+[ 99] off     MACHINE 001                    0:01:00
+-- Virtual Machine Snapshots --
+MACHINE 001
+ +-- snap_0* (01/01/2000 00:01:00)
+     +-- snap_1 (05/02/2010 00:03:00)
 ```
 ### start
 ```
 hypy start --help
-Usage: hypy.py start [OPTIONS] INDEX
+Usage: hypy.py start [OPTIONS] IDENT
 
   Start virtual machine identified by index
 
 Options:
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
 ```
 ### stop
 ```
 hypy stop --help
-Usage: hypy.py stop [OPTIONS] INDEX
+Usage: hypy.py stop [OPTIONS] IDENT
 
   Stop virtual machine identified by index
 
 Options:
   -f, --force  Hyper-V gives the guest five minutes to save data, then forces
                a shutdown
+  -n, --name   Use vm name instead of index
   --help       Show this message and exit.
 ```
 ### pause
 ```
 hypy pause --help
-Usage: hypy.py pause [OPTIONS] INDEX
+Usage: hypy.py pause [OPTIONS] IDENT
 
   Pause virtual machine identified by index
 
 Options:
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
 ```
 ### resume
 ```
 hypy resume --help
-Usage: hypy.py resume [OPTIONS] INDEX
+Usage: hypy.py resume [OPTIONS] IDENT
 
   Resume (paused) virtual machine identified by index
 
 Options:
-  --help  Show this message and exit.
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
+```
+### save
+```
+hypy save --help
+Usage: hypy.py save [OPTIONS] IDENT
+
+  Save virtual machine identified by index
+
+Options:
+  -n, --name  Use vm name instead of index
+  --help      Show this message and exit.
 ```
