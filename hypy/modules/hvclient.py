@@ -267,12 +267,12 @@ def run_cmd_ssh(cmd: str) -> Response:
                        hostname=config['host'],
                        port=int(config['ssh_port']))
 
-    (sin, sout, serr) = ssh_client.exec_command(cmd)
+    cmd_st = ssh_client.exec_command(cmd)
 
     rs = namedtuple('Response', ['std_out', 'std_err', 'status_code'])
-    rs.std_out = sout.read()
-    rs.std_err = serr.read()
-    rs.status_code = sout.channel.recv_exit_status()
+    rs.std_out = cmd_st[1].read()
+    rs.std_err = cmd_st[2].read()
+    rs.status_code = cmd_st[1].channel.recv_exit_status()
     ssh_client.close()
 
     return rs
