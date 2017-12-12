@@ -2,7 +2,7 @@
 Printer module. Formats messages to be printed in command line.
 """
 from datetime import timedelta
-from modules.snaptree import create_tree
+from hypy.modules.snaptree import create_tree
 from fnmatch import fnmatch
 
 STATES = {3: 'off',

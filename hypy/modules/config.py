@@ -2,8 +2,9 @@
 Hypy configuration manager module
 """
 import configparser
+from os.path import expanduser
 
-CONFIG_FILE_LOCATION = 'hypy.conf'
+CONFIG_FILE_LOCATION = expanduser('~/.hypy.conf')
 configuration = None
 
 
@@ -52,4 +53,5 @@ def load(user: str, passw: str, domain: str, host: str, proto: str):
 
     except KeyError:
         print("Please, configure your credentials file - hypy.conf")
+        print(CONFIG_FILE_LOCATION)
         exit(1)

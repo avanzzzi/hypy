@@ -31,6 +31,7 @@ setup(
         'paramiko',
         'colorama'
     ],
+    package_data={'hypy': ['hypy.conf.example']},
     entry_points={
         'console_scripts': [
             'hypy=hypy.hypy:main'

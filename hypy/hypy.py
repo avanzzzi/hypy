@@ -3,10 +3,10 @@
 
 import click
 from time import sleep
-from modules import hvclient
-from modules import printer
-from modules import cache
-from modules import config
+from hypy.modules import hvclient
+from hypy.modules import printer
+from hypy.modules import cache
+from hypy.modules import config
 
 
 @click.group()
