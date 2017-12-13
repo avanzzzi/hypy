@@ -196,7 +196,3 @@ def get_name(by_name, ident):
         name = cache.get_vm_by_index(index)['Name']
 
     return name
-
-
-if __name__ == "__main__":
-    main()
