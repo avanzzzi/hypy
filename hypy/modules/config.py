@@ -42,7 +42,6 @@ def load(user: str, passw: str, domain: str, host: str, proto: str):
 
         options = config['options']
 
-        configuration['cache_file'] = options['cache_file']
         configuration['sync_interval'] = options['sync_interval']
         configuration['protocol'] = options['protocol']
         configuration['ssh_port'] = options['ssh_port']

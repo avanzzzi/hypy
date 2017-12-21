@@ -1,5 +1,5 @@
-pywinrm
-click
-asciitree
-paramiko
-colorama
+asciitree==0.3.3
+click==6.6
+colorama==0.3.9
+paramiko==2.2.1
+pywinrm==0.3.0b1

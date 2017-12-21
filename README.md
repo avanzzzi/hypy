@@ -26,7 +26,6 @@ Look into https://github.com/FreeRDP/FreeRDP for more instructions.
 
 ## Configuration
 To configure Hypy, change the file 'hypy.conf'.
-You must have write permissions to the path pointed by cache_file.
 These options can be overriden in the command line if needed.
 ```ini
 [credentials]
@@ -38,7 +37,6 @@ pass = <password>
 [options]
 protocol = <ssh or winrm>
 ssh_port = 22
-cache_file = <name of cache file>
 sync_interval = <interval in hours to make new cache file>
 ```
 ## usage
