@@ -1,12 +1,24 @@
 """
 Cache module. Interacts with the cache file.
 """
-from os.path import isfile, getmtime
+from os.path import isfile, getmtime, join
 from datetime import datetime, timedelta
+from tempfile import gettempdir
 import json
 
-vms_cache_filename = None
 sync_interval = None
+current_host = None
+
+
+def get_cache_path() -> str:
+    """
+    Get the cache file path based on the current Hyper-V host.
+
+    Returns:
+        The path to be used to create or update de cache file.
+    """
+    vms_cache = join(gettempdir(), 'vms_{}.cache'.format(current_host))
+    return vms_cache
 
 
 def get_vm_by_name(name: str) -> dict:
@@ -46,6 +58,7 @@ def list_vms() -> list:
     Returns:
         All vm info found in cache.
     """
+    vms_cache_filename = get_cache_path()
     if isfile(vms_cache_filename):
         with open(vms_cache_filename, 'r') as vms_cache_file:
             vms_cache = json.load(vms_cache_file)
@@ -61,6 +74,7 @@ def update_cache(vms_json: dict):
     Args:
         vms_json: Information to be included in cache.
     """
+    vms_cache_filename = get_cache_path()
     if isfile(vms_cache_filename):
         vms_cache = list_vms()
         vms_json = list({x['Id']: x for x in vms_cache + vms_json}.values())
@@ -77,6 +91,7 @@ def need_update() -> bool:
     Returns:
         True if the cache file is older than sync interval in hours.
     """
+    vms_cache_filename = get_cache_path()
     modified = datetime.min
     if isfile(vms_cache_filename):
         modified = datetime.fromtimestamp(getmtime(vms_cache_filename))

@@ -7,5 +7,4 @@ pass = password
 [options]
 protocol = ssh
 ssh_port = 22
-cache_file = /tmp/vms.cache
 sync_interval = 4

@@ -32,7 +32,6 @@ pip3 install git+https://github.com/avanzzzi/hypy.git@setup
 
 ## Configuration
 To configure Hypy, create the file '~/.hypy.conf'. You can use hypy.conf.example that comes with the package to get a starting point or use the contents below.
-You must have write permissions to the path pointed by cache_file.
 These options can be overriden in the command line if needed.
 ```ini
 [credentials]
@@ -44,7 +43,6 @@ pass = <password>
 [options]
 protocol = <ssh or winrm>
 ssh_port = 22
-cache_file = <name of cache file>
 sync_interval = <interval in hours to make new cache file>
 ```
 ## usage

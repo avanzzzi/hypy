@@ -22,7 +22,7 @@ def main(user, passw, domain, host, proto):
     """
     config.load(user, passw, domain, host, proto)
     hvclient.config = config.configuration
-    cache.vms_cache_filename = config.configuration['cache_file']
+    cache.current_host = config.configuration['host']
     cache.sync_interval = config.configuration['sync_interval']
 
 
