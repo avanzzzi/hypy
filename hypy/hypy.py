@@ -89,9 +89,18 @@ def delete(by_name, r, ident, snap_name):
 @click.option('--name', '-n', 'by_name', is_flag=True, default=False,
               help='Use vm name instead of index')
 @click.argument('ident')
+@click.option('--snap_type',
+              '-s',
+              help='Snapshot type to be created',
+              type=click.Choice(['standard', 'production']),
+              default='standard')
 @click.argument('snap_name')
-def create(by_name, ident, snap_name):
+def create(by_name, ident, snap_name, snap_type):
     name = get_name(by_name, ident)
+
+    rs = hvclient.set_snapshot_type(name, snap_type)
+    hvclient.parse_result(rs)
+
     rs = hvclient.create_vm_snapshot(name, snap_name)
     hvclient.parse_result(rs)
 
