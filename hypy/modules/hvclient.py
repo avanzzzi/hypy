@@ -106,10 +106,26 @@ def remove_vm_snapshot(vm_name: str, snap_name: str,
         Info obtained from remove hyper-v host.
     """
     ps_script = 'Remove-VMSnapshot -VMName "{}" -Name "{}"'.format(vm_name,
-                                                                     snap_name)
+                                                                   snap_name)
     if recursive:
         ps_script += " -IncludeAllChildSnapshots"
     ps_script += " -Confirm:$false"
+
+    rs = run_ps(ps_script)
+    return rs
+
+
+def set_snapshot_type(vm_name: str, snap_type: str) -> Response:
+    """
+    Set snapshot type to be created in this vm.
+
+    Args:
+        vm_name: The virtual machine name.
+        snap_type: The type of the checkpoint to be created.
+    Returns:
+        Info obtained from remove hyper-v host.
+    """
+    ps_script = 'Set-VM -VMName "{}" -CheckpointType {}'.format(vm_name, snap_type)
 
     rs = run_ps(ps_script)
     return rs
