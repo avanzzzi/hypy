@@ -28,7 +28,7 @@ Look into https://github.com/FreeRDP/FreeRDP for more instructions.
 ## Instalation
 Hypy can be installed with pip
 ```
-pip3 install git+https://github.com/avanzzzi/hypy.git@setup
+pip3 install git+https://github.com/avanzzzi/hypy.git
 ```
 
 ## Configuration
