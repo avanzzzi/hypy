@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # coding: utf-8
-
 from time import sleep
 
 import click
+
 from hypy.modules import cache, config, hvclient, printer
 
 
