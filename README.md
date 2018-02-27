@@ -25,7 +25,7 @@ FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is wo
 
 Look into https://github.com/FreeRDP/FreeRDP for more instructions.
 
-## Instalation
+## Install instructions
 Hypy can be installed with pip
 ```
 pip3 install git+https://github.com/avanzzzi/hypy.git
