@@ -24,6 +24,15 @@ def main(user, passw, domain, host, proto):
     cache.sync_interval = config.configuration['sync_interval']
 
 
+@main.command("status", help='Show virtual machine current status')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.pass_context
+def show_status(ctx, by_name, ident):
+    ctx.invoke(snaps, by_name=by_name, ident=ident)
+
+
 @main.command("list", help='List virtual machines and its indexes')
 @click.option('--sync', '-s', is_flag=True, default=False,
               help='Syncronize with server updating local cache')
