@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-import click
 from time import sleep
-from hypy.modules import hvclient
-from hypy.modules import printer
-from hypy.modules import cache
-from hypy.modules import config
+
+import click
+from hypy.modules import cache, config, hvclient, printer
 
 
 @click.group()

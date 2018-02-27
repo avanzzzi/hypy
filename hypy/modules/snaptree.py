@@ -2,9 +2,10 @@
 Snaptree module. Groups the functions used to create the tree of checkpoints.
 """
 import re
-from asciitree import LeftAligned
 from collections import OrderedDict as OD
 from datetime import datetime
+
+from asciitree import LeftAligned
 
 
 def convert_dt(creation_time: str) -> str:

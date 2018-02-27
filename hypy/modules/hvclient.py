@@ -1,11 +1,11 @@
 import json
 import platform
-from collections import namedtuple
-from paramiko import SSHClient, AutoAddPolicy
-from subprocess import Popen, DEVNULL
-from winrm import Protocol
-from winrm import Response
 from base64 import b64encode
+from collections import namedtuple
+from subprocess import DEVNULL, Popen
+
+from paramiko import AutoAddPolicy, SSHClient
+from winrm import Protocol, Response
 
 config = None
 
@@ -59,7 +59,8 @@ def get_vm(vm_name: str) -> Response:
     """
     if not vm_name:
         vm_name = '*'
-    ps_script = "Get-VM -Name '{}' | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VM -Name '{}' | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | C"
+    "onvertTo-Json".format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -74,7 +75,8 @@ def list_vm_snaps(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Get-VMSnapshot -VMName {} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
+    ps_script = "Get-VMSnapshot -VMName {} | Select Name,ParentSnapshotName,CreationTime,ParentSnap"
+    "shotId,Id | ConvertTo-Json".format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -90,7 +92,8 @@ def restore_vm_snap(vm_name: str, snap_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = 'Restore-VMSnapshot -Name "{}" -VMName {} -Confirm:$false'.format(snap_name, vm_name)
+    ps_script = 'Restore-VMSnapshot -Name "{}" -VMName {} -Confirm:$false'.format(snap_name,
+                                                                                  vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -160,7 +163,8 @@ def create_vm_snapshot(vm_name: str, snap_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = 'Checkpoint-VM -Name "{}" -SnapshotName "{}" -Confirm:$false'.format(vm_name, snap_name)
+    ps_script = 'Checkpoint-VM -Name "{}" -SnapshotName "{}" -Confirm:$false'.format(vm_name,
+                                                                                     snap_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -180,7 +184,6 @@ def parse_result(rs: Response) -> dict:
         exit(1)
 
     if rs.std_out:
-        print(rs.std_out)
         rs_json = json.loads(rs.std_out.decode('latin-1'))
         return rs_json
 

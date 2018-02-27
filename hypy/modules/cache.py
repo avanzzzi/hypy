@@ -1,10 +1,10 @@
 """
 Cache module. Interacts with the cache file.
 """
-from os.path import isfile, getmtime, join
-from datetime import datetime, timedelta
-from tempfile import gettempdir
 import json
+from datetime import datetime, timedelta
+from os.path import getmtime, isfile, join
+from tempfile import gettempdir
 
 sync_interval = None
 current_host = None
