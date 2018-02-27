@@ -77,4 +77,4 @@ Commands:
 ```
 
 If you need help on any subcommand, run `hypy.py COMMAND --help`.
-Further details on subcommands: https://github.com/avanzzzi/hypy/wiki/Documentation
+Further details on subcommands: https://github.com/avanzzzi/hypy/wiki
