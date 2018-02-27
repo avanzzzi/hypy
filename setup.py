@@ -28,8 +28,7 @@ setup(
         'pywinrm',
         'click',
         'asciitree',
-        'paramiko',
-        'colorama'
+        'paramiko'
     ],
     package_data={'hypy': ['hypy.conf.example']},
     entry_points={

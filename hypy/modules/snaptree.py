@@ -5,7 +5,6 @@ import re
 from asciitree import LeftAligned
 from collections import OrderedDict as OD
 from datetime import datetime
-from colorama import Fore
 
 
 def convert_dt(creation_time: str) -> str:
@@ -29,8 +28,7 @@ def create_tree(table: dict,
                 f_id: str="id",
                 f_label: str="item",
                 f_ctime: str="ctime",
-                v_none: str="null",
-                colors: bool=False) -> str:
+                v_none: str="null") -> str:
     """
     Creates the ascii checkpoint tree.
 
@@ -43,7 +41,6 @@ def create_tree(table: dict,
         f_label: Field with the label of the node.
         f_ctime: Field with the timestamp creation date.
         v_none: Value to be used for empty fields.
-        colors: Use colors in the tree output.
     Returns:
         A string containing the tree of snapshots
     """
@@ -65,19 +62,10 @@ def create_tree(table: dict,
         if cell[f_label] == mark:
             cell[f_label] = "{}*".format(cell[f_label])
 
-        if colors:
-            tr_tree = tr_tree.replace(cell[f_id],
-                                      "{}{} {}({}){}".format(
-                                          Fore.LIGHTWHITE_EX,
-                                          cell[f_label],
-                                          Fore.CYAN,
-                                          convert_dt(cell[f_ctime]),
-                                          Fore.RESET))
-        else:
-            tr_tree = tr_tree.replace(cell[f_id],
-                                      "{} ({})".format(
-                                          cell[f_label],
-                                          convert_dt(cell[f_ctime])))
+        tr_tree = tr_tree.replace(cell[f_id],
+                                  "{} ({})".format(
+                                      cell[f_label],
+                                      convert_dt(cell[f_ctime])))
     return tr_tree
 
 
