@@ -8,14 +8,15 @@ Multiplataform Hyper-V Manager using Python and FreeRDP
 ## How hypy works?
 Hypy uses winrm or ssh to comunicate with hyper-v server shell and sends powershell commands to interact with the virtual machines. To access the virtual machines, hypy uses freeRDP.
 
-## Pre-requisites
-### WinRM
+## Hyper-V Server configuration
+### Clients connecting via WinRM
 Hypy uses winrm to communicate with the hyper-v host, so it must be enabled and accepting connections.
-https://github.com/diyan/pywinrm has a session explaining how to enable WinRM on the remote host.
+https://github.com/diyan/pywinrm has a session explaining how to enable WinRM on the server/remote host.
 
-### SSH
-As an alternative to winrm, you can setup a SSH server on the hyper-v host. Passing protocol parameter in command line or setting ssh in the protocol option.
+### Clients connecting via SSH
+As an alternative to winrm, you can setup a SSH server on the hyper-v server. Using the protocol parameter in command line or setting ssh in the protocol option.
 
+## Client configuration
 ### FreeRDP
 FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is working before using hypy or it will not open the session to the virtual machine.
 
