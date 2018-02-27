@@ -9,6 +9,10 @@ from base64 import b64encode
 
 config = None
 
+SNAP_TYPES = {'standard': 5,
+              'production': 3,
+              'productiononly': 4}
+
 
 def connect(vm_id: str, vm_name: str, vm_index: str):
     """
@@ -51,7 +55,7 @@ def get_vm(vm_name: str) -> Response:
             instead, gathering information about all vms in the host which can
             be slow depending on the number of vms.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     if not vm_name:
         vm_name = '*'
@@ -68,7 +72,7 @@ def list_vm_snaps(vm_name: str) -> Response:
     Args:
         vm_name: The virtual machine name.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = "Get-VMSnapshot -VMName {} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
 
@@ -84,7 +88,7 @@ def restore_vm_snap(vm_name: str, snap_name: str) -> Response:
         vm_name: The virtual machine name.
         snap_name: The name of the checkpoint to be restored.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = 'Restore-VMSnapshot -Name "{}" -VMName {} -Confirm:$false'.format(snap_name, vm_name)
 
@@ -103,13 +107,28 @@ def remove_vm_snapshot(vm_name: str, snap_name: str,
         recursive: Specifies that the checkpoint’s children
             are to be deleted along with the checkpoint.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = 'Remove-VMSnapshot -VMName "{}" -Name "{}"'.format(vm_name,
                                                                    snap_name)
     if recursive:
         ps_script += " -IncludeAllChildSnapshots"
     ps_script += " -Confirm:$false"
+
+    rs = run_ps(ps_script)
+    return rs
+
+
+def get_snapsshot_type(vm_name: str) -> Response:
+    """
+    Get snapshot type from vm.
+
+    Args:
+        vm_name: The virtual machine name.
+    Returns:
+        Info obtained from remote hyper-v host.
+    """
+    ps_script = 'Get-VM -VMName "{}" | Select CheckpointType | ConvertTo-Json'.format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -123,7 +142,7 @@ def set_snapshot_type(vm_name: str, snap_type: str) -> Response:
         vm_name: The virtual machine name.
         snap_type: The type of the checkpoint to be created.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = 'Set-VM -VMName "{}" -CheckpointType {}'.format(vm_name, snap_type)
 
@@ -139,7 +158,7 @@ def create_vm_snapshot(vm_name: str, snap_name: str) -> Response:
         vm_name: The virtual machine name.
         snap_name: The name of the checkpoint to be created.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = 'Checkpoint-VM -Name "{}" -SnapshotName "{}" -Confirm:$false'.format(vm_name, snap_name)
 
@@ -154,20 +173,17 @@ def parse_result(rs: Response) -> dict:
     Args:
         rs: Response object with its properties (out, err and return_code).
     Returns:
-        Normalized information about the vm(s).
+        if there's something in std_out, return as json.
     """
     if rs.status_code != 0:
         print(rs.std_err)
         exit(1)
 
     if rs.std_out:
+        print(rs.std_out)
         rs_json = json.loads(rs.std_out.decode('latin-1'))
-
-        # If there is only one element, make it a list
-        if isinstance(rs_json, dict):
-            rs_json = [rs_json]
-
         return rs_json
+
     return None
 
 
@@ -179,7 +195,7 @@ def stop_vm(vm_name: str, force: bool=False) -> Response:
         vm_name: The virtual machine name.
         force: Whether should force shutdown or not.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = "Stop-VM -Name {}".format(vm_name)
     if force:
@@ -196,7 +212,7 @@ def resume_vm(vm_name: str) -> Response:
     Args:
         vm_name: The virtual machine name.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = "Resume-VM -Name {}".format(vm_name)
 
@@ -211,7 +227,7 @@ def save_vm(vm_name: str) -> Response:
     Args:
         vm_name: The virtual machine name.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = "Save-VM -Name {}".format(vm_name)
 
@@ -226,7 +242,7 @@ def pause_vm(vm_name: str) -> Response:
     Args:
         vm_name: The virtual machine name.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = "Suspend-VM -Name {}".format(vm_name)
 
@@ -241,7 +257,7 @@ def start_vm(vm_name: str) -> Response:
     Args:
         vm_name: The virtual machine name.
     Returns:
-        Info obtained from remove hyper-v host.
+        Info obtained from remote hyper-v host.
     """
     ps_script = "Start-VM -Name {}".format(vm_name)
     rs = run_ps(ps_script)
@@ -263,6 +279,7 @@ def run_ps(ps: str) -> Response:
     proto = config['protocol']
     encoded_ps = b64encode(ps.encode('utf_16_le')).decode('ascii')
     rs = func_d[proto]('powershell -encodedcommand {}'.format(encoded_ps))
+
     return rs
 
 
@@ -281,7 +298,9 @@ def run_cmd_ssh(cmd: str) -> Response:
     ssh_client.connect(username=config['user'],
                        password=config['pass'],
                        hostname=config['host'],
-                       port=int(config['ssh_port']))
+                       port=int(config['ssh_port']),
+                       allow_agent=False,
+                       look_for_keys=False)
 
     cmd_st = ssh_client.exec_command(cmd)
 

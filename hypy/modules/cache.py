@@ -74,6 +74,10 @@ def update_cache(vms_json: dict):
     Args:
         vms_json: Information to be included in cache.
     """
+    # If there is only one element, make it a list
+    if isinstance(vms_json, dict):
+        vms_json = [vms_json]
+
     vms_cache_filename = get_cache_path()
     if isfile(vms_cache_filename):
         vms_cache = list_vms()

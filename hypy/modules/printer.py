@@ -23,6 +23,10 @@ def print_vm_snaps(snaps_json: dict, vm_name: str, current_snap: str):
         vm_name: Vm name to be shown as root of the tree.
     """
     if snaps_json:
+        # If there is only one element, make it a list
+        if isinstance(snaps_json, dict):
+            snaps_json = [snaps_json]
+
         t_snaps = create_tree(snaps_json,
                               vm_name,
                               mark=current_snap,

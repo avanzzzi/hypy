@@ -59,7 +59,7 @@ def snaps(by_name, ident):
     printer.print_list_vms(cache_vms, name)
     rs_snaps = hvclient.list_vm_snaps(name)
     snaps = hvclient.parse_result(rs_snaps)
-    printer.print_vm_snaps(snaps, name, vms[0]['ParentSnapshotName'])
+    printer.print_vm_snaps(snaps, name, vms['ParentSnapshotName'])
 
 
 @main.command(help='Restore virtual machine snapshot')
@@ -98,8 +98,12 @@ def delete(by_name, r, ident, snap_name):
 def create(by_name, ident, snap_name, snap_type):
     name = get_name(by_name, ident)
 
-    rs = hvclient.set_snapshot_type(name, snap_type)
-    hvclient.parse_result(rs)
+    rs = hvclient.get_snapsshot_type(name)
+    current_snap_type = hvclient.parse_result(rs)["CheckpointType"]
+
+    if current_snap_type != hvclient.SNAP_TYPES[snap_type]:
+        rs = hvclient.set_snapshot_type(name, snap_type)
+        hvclient.parse_result(rs)
 
     rs = hvclient.create_vm_snapshot(name, snap_name)
     hvclient.parse_result(rs)
@@ -121,9 +125,9 @@ def connect(by_name, ident):
     vm = hvclient.parse_result(rs)
     cache.update_cache(vm)
 
-    if vm[0]['State'] not in [2, 9]:
+    if vm['State'] not in [2, 9]:
         rs = hvclient.start_vm(vm_name)
-        vm = hvclient.parse_result(rs)
+        hvclient.parse_result(rs)
         sleep(5)
 
     hvclient.connect(vm_id, vm_name, vm_index)
