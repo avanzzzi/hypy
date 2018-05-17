@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='hypy',
-    version='0.3.0',
+    version='0.3.1',
     description='Multiplataform Hyper-V Manager using Python and FreeRDP',
     long_description=long_description,
     url='https://github.com/avanzzzi/hypy',
