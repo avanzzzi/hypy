@@ -1,7 +1,7 @@
 """
 Cache module. Interacts with the cache file.
 """
-import json
+from json import JSONDecodeError, load, dump
 from datetime import datetime, timedelta
 from os.path import getmtime, isfile, join
 from tempfile import gettempdir
@@ -59,12 +59,17 @@ def list_vms() -> list:
         All vm info found in cache.
     """
     vms_cache_filename = get_cache_path()
-    if isfile(vms_cache_filename):
+    try:
         with open(vms_cache_filename, 'r') as vms_cache_file:
-            vms_cache = json.load(vms_cache_file)
+            vms_cache = load(vms_cache_file)
+    except FileNotFoundError:
+        print("Cache file not found")
+        vms_cache = []
+    except JSONDecodeError:
+        print("Invalid cache file")
+        vms_cache = []
 
-        return vms_cache
-    return None
+    return vms_cache
 
 
 def update_cache(vms_json: dict):
@@ -85,7 +90,7 @@ def update_cache(vms_json: dict):
 
     vms_json.sort(key=lambda k: k['Name'])
     with open(vms_cache_filename, 'w') as vms_cache_file:
-        json.dump(vms_json, vms_cache_file, indent=4)
+        dump(vms_json, vms_cache_file, indent=4)
 
 
 def need_update() -> bool:
