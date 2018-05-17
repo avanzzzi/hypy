@@ -207,6 +207,34 @@ def save(ctx, by_name, ident):
     ctx.invoke(list_vms, sync=True, name=name)
 
 
+@main.group('switch')
+def switch():
+    """Manage network switches in the Hyper-V server."""
+    pass
+
+
+@switch.command('ls', help='List avaiable network switches in the Hyper-V server')
+def list_switches():
+    pass
+
+
+@switch.command('set', help='Change current vm network switch')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+@click.argument('switch_name')
+def set_switch(by_name, ident, switch_name):
+    pass
+
+
+@switch.command('get', help='Get current vm network switch')
+@click.option('--name', '-n', 'by_name', is_flag=True, default=False,
+              help='Use vm name instead of index')
+@click.argument('ident')
+def get_switch(by_name, ident):
+    pass
+
+
 def get_name(by_name, ident):
     """Retrieve name or name by index based on user input."""
     if by_name:
