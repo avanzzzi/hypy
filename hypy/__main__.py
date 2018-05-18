@@ -232,7 +232,9 @@ def list_switches():
 @click.argument('ident')
 @click.argument('switch_name')
 def set_switch(by_name, ident, switch_name):
-    pass
+    name = get_name(by_name, ident)
+    rs = hvclient.set_switch(name, switch_name)
+    hvclient.parse_result(rs)
 
 
 @switch.command('get', help='Get current vm network switch')
@@ -240,7 +242,10 @@ def set_switch(by_name, ident, switch_name):
               help='Use vm name instead of index')
 @click.argument('ident')
 def get_switch(by_name, ident):
-    pass
+    name = get_name(by_name, ident)
+    rs = hvclient.get_switch(name)
+    switch = hvclient.parse_result(rs)
+    printer.print_vm_switch(switch)
 
 
 def get_name(by_name, ident):
