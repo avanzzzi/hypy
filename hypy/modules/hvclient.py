@@ -266,6 +266,19 @@ def start_vm(vm_name: str) -> Response:
     return rs
 
 
+def list_switches() -> Response:
+    """
+    List virtual network switches from server.
+
+    Returns:
+        Info obtained from remote hyper-v host.
+    """
+    ps_script = "Get-VMSwitch | Select Name | ConvertTo-Json"
+    rs = run_ps(ps_script)
+
+    return rs
+
+
 def run_ps(ps: str) -> Response:
     """
     Run powershell script on target machine.

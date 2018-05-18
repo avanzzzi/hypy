@@ -209,13 +209,21 @@ def save(ctx, by_name, ident):
 
 @main.group('switch')
 def switch():
-    """Manage network switches in the Hyper-V server."""
+    """Manage virtual network switches in the Hyper-V server."""
     pass
 
 
-@switch.command('ls', help='List avaiable network switches in the Hyper-V server')
+@main.command('switches', help='List avaiable virtual network switches in the Hyper-V server')
+@click.pass_context
+def switches(ctx):
+    ctx.invoke(list_switches)
+
+
+@switch.command('ls', help='List avaiable virtual network switches in the Hyper-V server')
 def list_switches():
-    pass
+    rs = hvclient.list_switches()
+    switches = hvclient.parse_result(rs)
+    printer.print_switches(switches)
 
 
 @switch.command('set', help='Change current vm network switch')

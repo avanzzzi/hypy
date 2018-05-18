@@ -15,6 +15,20 @@ ADJ = {'index': 3,
        'name': 30}
 
 
+def print_switches(switches_json: dict):
+    """
+    Print a list of virtual network switches.
+
+    Args:
+        switches_json: Dict containing the table of switches.
+    """
+    print("-- Virtual network switches --")
+
+    # Listing
+    for switch in switches_json:
+        print(switch['Name'])
+
+
 def print_vm_snaps(snaps_json: dict, vm_name: str, current_snap: str):
     """
     Print ascii tree of checkpoints.
