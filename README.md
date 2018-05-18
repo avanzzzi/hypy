@@ -21,10 +21,10 @@ As an alternative to winrm, you can setup a SSH server on the hyper-v server. Us
 ### FreeRDP
 FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is working before using hypy or it will not open the session to the virtual machine.
 
-#### Linux: Your package manager should have freerdp 1.1.* avaiable or compile from source.
-#### Mac: When using homebrew, make share to include --HEAD option to get the lastest version (1.1.*) with HyperV support or use macports. Either way you will need XCode installed.
+#### Linux: Your package manager should have freerdp 1.1 or higher avaiable.
+#### Mac: When using homebrew, make share to include --HEAD option to get the latest version (1.1 or higher) with HyperV support or use macports. Either way you will need XCode installed.
 
-Look into https://github.com/FreeRDP/FreeRDP for more instructions.
+If you need to compile freerdp, look into https://github.com/FreeRDP/FreeRDP for instructions.
 
 ## Install instructions
 Hypy can be installed with pip
@@ -39,7 +39,7 @@ These options can be overriden in the command line if needed.
 [credentials]
 host = <server name in domain>
 domain = <domain name>
-user = <user name in server>
+user = <username in server>
 pass = <password>
 
 [options]
@@ -49,8 +49,8 @@ sync_interval = <interval in hours to make new cache file>
 ```
 ## usage
 ```
-hypy --help
-Usage: hypy.py [OPTIONS] COMMAND [ARGS]...
+> hypy --help
+Usage: hypy [OPTIONS] COMMAND [ARGS]...
 
   Multiplataform Hyper-V Manager using Python and FreeRDP
 
@@ -63,18 +63,21 @@ Options:
   --help                   Show this message and exit.
 
 Commands:
-  connect  Connect to virtual machine identified by...
-  create   Create a new snapshot with vm's current state
-  delete   Delete a machine's snapshot by name
-  list     List virtual machines and its indexes
-  ls       List updated virtual machines and its indexes
-  pause    Pause virtual machine identified by index
-  restore  Restore virtual machine snapshot
-  resume   Resume (paused) virtual machine identified by...
-  save     Save virtual machine identified by index
-  snaps    List virtual machine snapshots
-  start    Start virtual machine identified by index
-  stop     Stop virtual machine identified by index
+  connect   Connect to virtual machine identified by...
+  create    Create a new snapshot with vm's current state
+  delete    Delete a machine's snapshot by name
+  list      List virtual machines and its indexes
+  ls        List updated virtual machines and its indexes
+  pause     Pause virtual machine identified by index
+  restore   Restore virtual machine snapshot
+  resume    Resume (paused) virtual machine identified by...
+  save      Save virtual machine identified by index
+  snaps     List virtual machine snapshots
+  start     Start virtual machine identified by index
+  status    Show virtual machine current status
+  stop      Stop virtual machine identified by index
+  switch    Manage virtual network switches in the...
+  switches  List avaiable virtual network switches in the...
 ```
 
 If you need help on any subcommand, run `hypy.py COMMAND --help`.
