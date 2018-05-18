@@ -59,7 +59,7 @@ def get_vm(vm_name: str) -> Response:
     """
     if not vm_name:
         vm_name = '*'
-    ps_script = "Get-VM -Name '{}' | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json".format(vm_name)
+    ps_script = 'Get-VM -Name "{}" | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json'.format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -74,7 +74,7 @@ def list_vm_snaps(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Get-VMSnapshot -VMName {} | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json".format(vm_name)
+    ps_script = 'Get-VMSnapshot -VMName "{}" | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json'.format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -90,8 +90,8 @@ def restore_vm_snap(vm_name: str, snap_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = 'Restore-VMSnapshot -Name "{}" -VMName {} -Confirm:$false'.format(snap_name,
-                                                                                  vm_name)
+    ps_script = 'Restore-VMSnapshot -Name "{}" -VMName "{}" -Confirm:$false'.format(snap_name,
+                                                                                    vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -198,7 +198,7 @@ def stop_vm(vm_name: str, force: bool=False) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Stop-VM -Name {}".format(vm_name)
+    ps_script = 'Stop-VM -Name "{}"'.format(vm_name)
     if force:
         ps_script += " -Force"
 
@@ -215,7 +215,7 @@ def resume_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Resume-VM -Name {}".format(vm_name)
+    ps_script = 'Resume-VM -Name "{}"'.format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -230,7 +230,7 @@ def save_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Save-VM -Name {}".format(vm_name)
+    ps_script = 'Save-VM -Name "{}"'.format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -245,7 +245,7 @@ def pause_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Suspend-VM -Name {}".format(vm_name)
+    ps_script = 'Suspend-VM -Name "{}"'.format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -260,7 +260,7 @@ def start_vm(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = "Start-VM -Name {}".format(vm_name)
+    ps_script = 'Start-VM -Name "{}"'.format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -274,6 +274,37 @@ def list_switches() -> Response:
         Info obtained from remote hyper-v host.
     """
     ps_script = "Get-VMSwitch | Select Name | ConvertTo-Json"
+    rs = run_ps(ps_script)
+
+    return rs
+
+
+def get_switch(vm_name: str) -> Response:
+    """
+    Get current virtual network switch from mv.
+
+    Args:
+        vm_name: The virtual machine name.
+    Returns:
+        Info obtained from remote hyper-v host.
+    """
+    ps_script = 'Get-VMNetworkAdapter -VMName "{}" | Select VMName, SwitchName | ConvertTo-Json'.format(vm_name)
+    rs = run_ps(ps_script)
+
+    return rs
+
+
+def set_switch(vm_name: str, switch_name: str) -> Response:
+    """
+    Set virtual machine's virtual network switch.
+
+    Args:
+        vm_name: The virtual machine name.
+        switch_name: Switch name as retrieved by get_switch.
+    Returns:
+        Info about the command execution.
+    """
+    ps_script = 'Connect-VMNetworkAdapter -VMName "{}" -SwitchName "{}"'.format(vm_name, switch_name)
     rs = run_ps(ps_script)
 
     return rs
