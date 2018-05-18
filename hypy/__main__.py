@@ -13,6 +13,4 @@ cli.add_command(create)
 cli.add_command(restore)
 cli.add_command(delete)
 
-
-if __name__ == '__main__':
-    cli()
+cli()
