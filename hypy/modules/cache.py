@@ -1,8 +1,8 @@
 """
 Cache module. Interacts with the cache file.
 """
-from json import JSONDecodeError, load, dump
 from datetime import datetime, timedelta
+from json import JSONDecodeError, dump, load
 from os.path import getmtime, isfile, join
 from tempfile import gettempdir
 
@@ -109,3 +109,14 @@ def need_update() -> bool:
         return True
 
     return False
+
+
+def get_name(by_name, ident):
+    """Retrieve name or name by index based on user input."""
+    if by_name:
+        name = ident
+    else:
+        index = ident
+        name = get_vm_by_index(index)['Name']
+
+    return name
