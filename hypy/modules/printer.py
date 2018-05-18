@@ -15,6 +15,17 @@ ADJ = {'index': 3,
        'name': 30}
 
 
+def print_vm_switch(switch_json: dict):
+    """
+    Print virtual machine's current virtual network switch.
+
+    Args:
+        switch_json: Dict containing current switch information.
+    """
+    print("{} {}".format("VMName".ljust(ADJ['name']), "SwitchName"))
+    print("{} {}".format(str(switch_json['VMName']).ljust(ADJ['name']), switch_json['SwitchName']))
+
+
 def print_switches(switches_json: dict):
     """
     Print a list of virtual network switches.
