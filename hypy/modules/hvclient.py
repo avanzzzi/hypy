@@ -59,7 +59,8 @@ def get_vm(vm_name: str) -> Response:
     """
     if not vm_name:
         vm_name = '*'
-    ps_script = 'Get-VM -Name "{}" | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | ConvertTo-Json'.format(vm_name)
+    ps_script = 'Get-VM -Name "{}" | Select Name,Id,State,Uptime,ParentSnapshotName | sort Name | \
+ConvertTo-Json'.format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -74,7 +75,8 @@ def list_vm_snaps(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = 'Get-VMSnapshot -VMName "{}" | Select Name,ParentSnapshotName,CreationTime,ParentSnapshotId,Id | ConvertTo-Json'.format(vm_name)
+    ps_script = 'Get-VMSnapshot -VMName "{}" | Select Name,ParentSnapshotName,CreationTime,\
+ParentSnapshotId,Id | ConvertTo-Json'.format(vm_name)
 
     rs = run_ps(ps_script)
     return rs
@@ -288,7 +290,8 @@ def get_switch(vm_name: str) -> Response:
     Returns:
         Info obtained from remote hyper-v host.
     """
-    ps_script = 'Get-VMNetworkAdapter -VMName "{}" | Select VMName, SwitchName | ConvertTo-Json'.format(vm_name)
+    ps_script = 'Get-VMNetworkAdapter -VMName "{}" | Select VMName, SwitchName | ConvertTo-Json'\
+        .format(vm_name)
     rs = run_ps(ps_script)
 
     return rs
@@ -304,7 +307,8 @@ def set_switch(vm_name: str, switch_name: str) -> Response:
     Returns:
         Info about the command execution.
     """
-    ps_script = 'Connect-VMNetworkAdapter -VMName "{}" -SwitchName "{}"'.format(vm_name, switch_name)
+    ps_script = 'Connect-VMNetworkAdapter -VMName "{}" -SwitchName "{}"'.format(vm_name,
+                                                                                switch_name)
     rs = run_ps(ps_script)
 
     return rs
