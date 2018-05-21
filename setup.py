@@ -1,10 +1,10 @@
-from codecs import open
+from codecs import open as copen
 from os import path
 
 from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with copen(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -34,7 +34,7 @@ setup(
     package_data={'hypy': ['hypy.conf.example']},
     entry_points={
         'console_scripts': [
-            'hypy=hypy.__main__:main'
+            'hypy=hypy.__main__'
         ]
     }
 )
