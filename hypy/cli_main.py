@@ -1,7 +1,6 @@
 from time import sleep
 
 import click
-
 from hypy.modules import cache, config, hvclient, printer
 
 
