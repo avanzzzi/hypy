@@ -1,4 +1,4 @@
 asciitree==0.3.3
-click==6.6
-paramiko==2.2.1
-pywinrm==0.3.0b1
+click==6.7
+paramiko==2.4.1
+pywinrm==0.3.0

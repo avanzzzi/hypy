@@ -81,7 +81,7 @@ def snap_delete(by_name, r, ident, snap_name):
 @click.argument('ident')
 @click.pass_context
 def snaps(ctx, by_name, ident):
-    ctx.invoke(snap_ls, by_name=by_name, ident=ident)
+    ctx.forward(snap_ls)
 
 
 @click.command('create', help="Create a new snapshot with vm's current state")
@@ -96,7 +96,7 @@ def snaps(ctx, by_name, ident):
 @click.argument('snap_name')
 @click.pass_context
 def create(ctx, by_name, ident, snap_name, snap_type):
-    ctx.invoke(snap_create, by_name, ident, snap_name, snap_type)
+    ctx.forward(snap_create)
 
 
 @click.command('restore', help='Restore virtual machine snapshot')
@@ -106,7 +106,7 @@ def create(ctx, by_name, ident, snap_name, snap_type):
 @click.argument('snap_name')
 @click.pass_context
 def restore(ctx, by_name, ident, snap_name):
-    ctx.invoke(snap_restore, by_name, ident, snap_name)
+    ctx.forward(snap_restore)
 
 
 @click.command('delete', help="Delete a machine's snapshot by name")
@@ -117,4 +117,4 @@ def restore(ctx, by_name, ident, snap_name):
 @click.argument('snap_name')
 @click.pass_context
 def delete(ctx, by_name, r, ident, snap_name):
-    ctx.invoke(snap_delete, by_name, r, ident, snap_name)
+    ctx.forward(snap_delete)

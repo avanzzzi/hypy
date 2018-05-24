@@ -44,4 +44,4 @@ def get_switch(by_name, ident):
 @click.command('switches', help='List avaiable virtual network switches in the Hyper-V server')
 @click.pass_context
 def switches(ctx):
-    ctx.invoke(list_switches)
+    ctx.forward(list_switches)
