@@ -54,6 +54,7 @@ Usage: hypy [OPTIONS] COMMAND [ARGS]...
   Multiplataform Hyper-V Manager using Python and FreeRDP
 
 Options:
+  --version                Show the version and exit.
   -u, --user TEXT          Username in hyper-v server
   -p, --pass TEXT          Password in hyper-v server
   -d, --domain TEXT        Domain name
@@ -71,6 +72,7 @@ Commands:
   restore   Restore virtual machine snapshot
   resume    Resume (paused) virtual machine identified by...
   save      Save virtual machine identified by index
+  snap      Manage virtual machine snapshots
   snaps     List virtual machine snapshots
   start     Start virtual machine identified by index
   status    Show virtual machine current status
