@@ -6,7 +6,6 @@ from hypy.modules import cache, config, hvclient, printer
 
 
 @click.group('cli')
-@click.version_option()
 @click.option('--user', '-u', help='Username in hyper-v server')
 @click.option('passw', '--pass', '-p', help='Password in hyper-v server')
 @click.option('--domain', '-d', help='Domain name')
