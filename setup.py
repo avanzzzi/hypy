@@ -34,7 +34,7 @@ setup(
     package_data={'hypy': ['hypy.conf.example']},
     entry_points={
         'console_scripts': [
-            'hypy=hypy.__main__'
+            'hypy=hypy.__main__:cli'
         ]
     }
 )
