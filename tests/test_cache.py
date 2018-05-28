@@ -6,7 +6,7 @@ from tempfile import gettempdir
 
 from hypy.modules import cache
 
-from test.fixtures import current_cache, get_vm_response, updated_cache
+from tests.fixtures import current_cache, get_vm_response, updated_cache
 
 
 class TestCache(unittest.TestCase):
