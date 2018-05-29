@@ -5,7 +5,6 @@ from os.path import exists, join
 from tempfile import gettempdir
 
 from hypy.modules import cache
-
 from tests.fixtures import current_cache, get_vm_response, updated_cache
 
 

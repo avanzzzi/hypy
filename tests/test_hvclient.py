@@ -1,9 +1,9 @@
 import unittest
+from collections import namedtuple
 from json import loads
 
 from hypy.modules import hvclient
 from tests.fixtures import get_vm_response
-from collections import namedtuple
 
 
 class TestHVClient(unittest.TestCase):
