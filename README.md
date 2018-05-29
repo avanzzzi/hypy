@@ -83,3 +83,6 @@ Commands:
 
 If you need help on any subcommand, run `hypy.py COMMAND --help`.
 Further details on subcommands: https://github.com/avanzzzi/hypy/wiki
+
+## tests
+A tox.ini file is included for execution of style check and unit tests.
