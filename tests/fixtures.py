@@ -79,9 +79,9 @@ get_vm_response = """[
         "ParentSnapshotName": null
     },
     {
-        "Name": "vm 03",
+        "Name": "vm 03-1",
         "Id": "03",
-        "State": 2,
+        "State": 1,
         "Uptime": {
             "Ticks": 5227649510000,
             "Days": 6,
@@ -139,9 +139,9 @@ updated_cache = """[
         "ParentSnapshotName": null
     },
     {
-        "Name": "vm 03",
+        "Name": "vm 03-1",
         "Id": "03",
-        "State": 2,
+        "State": 1,
         "Uptime": {
             "Ticks": 5227649510000,
             "Days": 6,
@@ -177,3 +177,25 @@ updated_cache = """[
         "ParentSnapshotName": null
     }
 ]"""
+
+snaps_json = """[
+{"Name": "snap 3", "ParentSnapshotName": "snap 2", "CreationTime": "/Date(1524072333067)/",
+"ParentSnapshotId": "s2", "Id": "s3"},
+{"Name": "snap 2", "ParentSnapshotName": "snap 1", "CreationTime": "/Date(1524072333067)/",
+"ParentSnapshotId": "s1", "Id": "s2"},
+{"Name": "snap 1", "ParentSnapshotName": null, "CreationTime": "/Date(1514490360800)/",
+"ParentSnapshotId": null, "Id": "s1"},
+{"Name": "snap 5", "ParentSnapshotName": "snap 1", "CreationTime": "/Date(1524072333067)/",
+"ParentSnapshotId": "s1", "Id": "s5"},
+{"Name": "snap 4", "ParentSnapshotName": null, "CreationTime": "/Date(1514490360800)/",
+"ParentSnapshotId": null, "Id": "s4"}]
+"""
+
+snaps_tree = """-- Virtual Machine Snapshots --
+Virtual Machine
+ +-- snap 1 (28/12/2017 17:46:00)
+ |   +-- snap 5* (18/04/2018 14:25:33)
+ |   +-- snap 2 (18/04/2018 14:25:33)
+ |       +-- snap 3 (18/04/2018 14:25:33)
+ +-- snap 4 (28/12/2017 17:46:00)
+"""
