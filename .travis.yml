@@ -1,0 +1,17 @@
+dist: trusty
+sudo: required
+
+language: python
+
+matrix:
+    include:
+        - python: 3.6
+          env: TOXENV=py26
+        - python: 3.5
+          env: TOXENV=py35
+
+install:
+      - "pip install tox"
+
+script:
+      - "tox -e $TOXENV"
