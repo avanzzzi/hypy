@@ -1,14 +1,16 @@
 dist: trusty
-sudo: required
+sudo: false
 
 language: python
 
 matrix:
     include:
         - python: 3.6
-          env: TOXENV=py26
+          env: TOXENV=py36
         - python: 3.5
           env: TOXENV=py35
+        - python: 3.4
+          env: TOXENV=py34
 
 install:
       - "pip install tox"
