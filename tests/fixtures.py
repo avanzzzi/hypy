@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 current_cache = """[
     {
         "Name": "vm 01",
@@ -193,9 +196,10 @@ snaps_json = """[
 
 snaps_tree = """-- Virtual Machine Snapshots --
 Virtual Machine
- +-- snap 1 (28/12/2017 17:46:00)
- |   +-- snap 5* (18/04/2018 14:25:33)
- |   +-- snap 2 (18/04/2018 14:25:33)
- |       +-- snap 3 (18/04/2018 14:25:33)
- +-- snap 4 (28/12/2017 17:46:00)
-"""
+ +-- snap 1 ({dt1})
+ |   +-- snap 5* ({dt2})
+ |   +-- snap 2 ({dt2})
+ |       +-- snap 3 ({dt2})
+ +-- snap 4 ({dt1})
+""".format(dt1=datetime.fromtimestamp(1514490360.800).strftime("%d/%m/%Y %H:%M:%S"),
+           dt2=datetime.fromtimestamp(1524072333.067).strftime("%d/%m/%Y %H:%M:%S"))
