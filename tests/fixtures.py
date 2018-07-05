@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 current_cache = """[
     {
         "Name": "vm 01",
