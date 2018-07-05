@@ -48,3 +48,10 @@ class TestCache(unittest.TestCase):
         self.fill_cache()
         vm_name = cache.get_name(by_name=False, ident='1')
         self.assertEqual(vm_name, 'vm 03')
+
+    def test_remove_cache(self):
+        self.fill_cache()
+        cache.remove_cache()
+        response = loads(get_vm_response)
+        cache.update_cache(response)
+        self.assertEqual(response, cache.list_vms())
