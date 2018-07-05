@@ -2,7 +2,7 @@ import json
 import platform
 from base64 import b64encode
 from collections import namedtuple
-from subprocess import DEVNULL, Popen
+from subprocess import DEVNULL, PIPE, Popen, TimeoutExpired
 
 from paramiko import AutoAddPolicy, SSHClient
 from winrm import Protocol, Response
@@ -40,9 +40,14 @@ def connect(vm_id: str, vm_name: str, vm_index: str):
                         '/cert-ignore']
 
     try:
-        Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+        handle = Popen(cmd, stdout=DEVNULL, stderr=PIPE)
+        errs = handle.communicate(timeout=5)[1]
+        if errs:
+            print(errs.decode('utf-8'))
     except FileNotFoundError as err:
         print("{} not found in PATH\n{}".format(freerdp_bin, err))
+    except TimeoutExpired:
+        print("{} started in background".format(freerdp_bin))
 
 
 def get_vm(vm_name: str) -> Response:
