@@ -3,6 +3,7 @@ Cache module. Interacts with the cache file.
 """
 from datetime import datetime, timedelta
 from json import JSONDecodeError, dump, load
+from os import remove
 from os.path import getmtime, isfile, join
 from tempfile import gettempdir
 
@@ -109,6 +110,20 @@ def need_update() -> bool:
         return True
 
     return False
+
+
+def remove_cache() -> bool:
+    """
+    Remove the current host cache file.
+
+    Returns:
+        Whether the file was removed with success.
+    """
+    vms_cache_filename = get_cache_path()
+    if isfile(vms_cache_filename):
+        remove(vms_cache_filename)
+
+    return not isfile(vms_cache_filename)
 
 
 def get_name(by_name, ident):

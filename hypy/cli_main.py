@@ -42,10 +42,13 @@ def show_status(ctx, by_name, ident):
 @click.option('--sync', '-s', is_flag=True, default=False,
               help='Syncronize with server updating local cache')
 @click.option('--name', '-n', help='Filter virtual machines by name')
-def list_vms(sync, name):
+@click.option('--rem', '-r', help='Remove old cache before sync')
+def list_vms(sync, name, rem):
     if sync or cache.need_update():
         rs = hvclient.get_vm(name)
         vms = hvclient.parse_result(rs)
+        if rem:
+            cache.remove_cache()
         cache.update_cache(vms)
     cache_vms = cache.list_vms()
     printer.print_list_vms(cache_vms, name)
