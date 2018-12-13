@@ -22,8 +22,12 @@ def print_vm_switch(switch_json: dict):
     Args:
         switch_json: Dict containing current switch information.
     """
+    if isinstance(switch_json, dict):
+        switch_json = [switch_json]
+
     print("{} {}".format("VMName".ljust(ADJ['name']), "SwitchName"))
-    print("{} {}".format(str(switch_json['VMName']).ljust(ADJ['name']), switch_json['SwitchName']))
+    for switch in switch_json:
+        print("{} {}".format(str(switch['VMName']).ljust(ADJ['name']), switch['SwitchName']))
 
 
 def print_switches(switches_json: dict):
