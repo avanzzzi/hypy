@@ -25,11 +25,11 @@ def convert_dt(creation_time: str) -> str:
 def create_tree(table: dict,
                 root: str,
                 mark: str,
-                f_pid: str="pid",
-                f_id: str="id",
-                f_label: str="item",
-                f_ctime: str="ctime",
-                v_none: str="null") -> str:
+                f_pid: str = "pid",
+                f_id: str = "id",
+                f_label: str = "item",
+                f_ctime: str = "ctime",
+                v_none: str = "null") -> str:
     """
     Creates the ascii checkpoint tree.
 

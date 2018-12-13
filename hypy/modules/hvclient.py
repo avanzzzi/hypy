@@ -105,7 +105,7 @@ def restore_vm_snap(vm_name: str, snap_name: str) -> Response:
 
 
 def remove_vm_snapshot(vm_name: str, snap_name: str,
-                       recursive: bool=False) -> Response:
+                       recursive: bool = False) -> Response:
     """
     Deletes a virtual machine checkpoint.
 
@@ -195,7 +195,7 @@ def parse_result(rs: Response) -> dict:
     return None
 
 
-def stop_vm(vm_name: str, force: bool=False) -> Response:
+def stop_vm(vm_name: str, force: bool = False) -> Response:
     """
     Stop virtual machine.
 
@@ -378,8 +378,8 @@ def run_cmd_winrm(cmd: str) -> Response:
     """
     client = Protocol(endpoint='http://{}:5985/wsman'.format(config['host']),
                       transport='ntlm',
-                      username='{}\{}'.format(config['domain'],
-                                              config['user']),
+                      username=r'{}\{}'.format(config['domain'],
+                                               config['user']),
                       password=config['pass'],
                       server_cert_validation='ignore')
 
