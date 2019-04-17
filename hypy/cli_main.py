@@ -44,10 +44,11 @@ def show_status(ctx, by_name, ident):
 @click.option('--name', '-n', help='Filter virtual machines by name')
 @click.option('--rem', '-r', is_flag=True, default=False, help='Remove old cache before sync')
 def list_vms(sync, name, rem):
-    if sync or cache.need_update():
+    remove_old_cache = rem or cache.need_update()
+    if sync or remove_old_cache:
         rs = hvclient.get_vm(name)
         vms = hvclient.parse_result(rs)
-        if rem:
+        if remove_old_cache:
             cache.remove_cache()
         cache.update_cache(vms)
     cache_vms = cache.list_vms()
