@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "hypy3"
+version = "0.3.5"
+description = "Multiplataform Hyper-V Manager using Python and FreeRDP"
+authors = ["Gabriel Avanzi <gabriel.avanzi@gmail.com>"]
+license = "GPL-3.0"
+packages = [{include = "hypy"}]
+
+[tool.poetry.dependencies]
+python = "^3.5"
+pywinrm = "^0.3.0"
+click = "^7.0"
+paramiko = "^2.6"
+asciitree = "^0.3.3"
+
+[tool.poetry.dev-dependencies]
+tox = "^3.13"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
