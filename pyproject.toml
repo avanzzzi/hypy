@@ -16,6 +16,9 @@ asciitree = "^0.3.3"
 [tool.poetry.dev-dependencies]
 tox = "^3.13"
 
+[tool.poetry.scripts]
+hypy = 'hypy.__main__:cli'
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

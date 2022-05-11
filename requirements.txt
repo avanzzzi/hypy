@@ -1,4 +1,0 @@
-asciitree
-click
-paramiko
-pywinrm
