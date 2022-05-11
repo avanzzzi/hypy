@@ -1,8 +1,6 @@
 # HYPY - HYper-v in PYthon
 
-[![Build Status](https://travis-ci.org/avanzzzi/hypy.svg?branch=master)](https://travis-ci.org/avanzzzi/hypy)
-[![Build status](https://gitlab.com/gabriel.avanzi/hypy/badges/master/build.svg)](https://gitlab.com/gabriel.avanzi/hypy/pipelines)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2d6d147eedc0403195262e6041537eb3)](https://www.codacy.com/app/avanzzzi/hypy?utm_source=github.com&utm_medium=referral&utm_content=avanzzzi/hypy&utm_campaign=badger)
+[![Build status](https://gitlab.com/gabriel.avanzi/hypy/badges/master/pipeline.svg)](https://gitlab.com/gabriel.avanzi/hypy/pipelines)
 
 Multiplatform Hyper-V Manager using Python and FreeRDP
 
@@ -22,7 +20,10 @@ As an alternative to winrm, you can setup a SSH server on the hyper-v server. Us
 FreeRDP binary must be in path (windows, linux and mac). Make sure FreeRDP is working before using hypy or it will not open the session to the virtual machine.
 
 #### Linux: Your package manager should have freerdp 1.1 or higher avaiable.
+Example in Ubuntu: `sudo apt install freerdp2-x11`
+
 #### Mac: When using homebrew, make share to include --HEAD option to get the latest version (1.1 or higher) with HyperV support or use macports. Either way you will need XCode installed.
+`brew install freerdp --HEAD`
 
 If you need to compile freerdp, look into https://github.com/FreeRDP/FreeRDP for instructions.
 

@@ -6,22 +6,17 @@ stages:
 before_script:
     - pip install tox
 
-python35:
-    image: python:3.5
-    stage: test
-    script: tox -e py35
-
-python36:
-    image: python:3.6
-    stage: test
-    script: tox -e py36
-
-python37:
-    image: python:3.7
-    stage: test
-    script: tox -e py37
-
-pythonrc:
-    image: python:rc
+python38:
+    image: python:3.8
     stage: test
     script: tox -e py38
+
+python39:
+    image: python:3.9
+    stage: test
+    script: tox -e py39
+
+python310:
+    image: python:3.10
+    stage: test
+    script: tox -e py310
