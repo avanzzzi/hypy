@@ -1,6 +1,5 @@
 # HYPY - HYper-v in PYthon
 
-[![Build Status](https://travis-ci.org/avanzzzi/hypy.svg?branch=master)](https://travis-ci.org/avanzzzi/hypy)
 [![Build status](https://gitlab.com/gabriel.avanzi/hypy/badges/master/pipeline.svg)](https://gitlab.com/gabriel.avanzi/hypy/pipelines)
 
 Multiplatform Hyper-V Manager using Python and FreeRDP
