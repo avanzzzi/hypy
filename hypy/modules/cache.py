@@ -96,7 +96,7 @@ def update_cache(vms_json: dict):
 
 def need_update() -> bool:
     """
-    Cheks if cache needs update based on cache file modification date.
+    Checks if cache needs update based on cache file modification date.
 
     Returns:
         True if the cache file is older than sync interval in hours.
