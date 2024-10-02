@@ -1,6 +1,6 @@
 import json
 import platform
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from collections import namedtuple
 from subprocess import DEVNULL, PIPE, Popen, TimeoutExpired
 
@@ -24,7 +24,7 @@ def connect(vm_id: str, vm_name: str, vm_index: str):
         vm_index: Index of the vm in the cache file.
     """
     user = config['user']
-    passw = config['pass']
+    passw = b64decode(config['pass'])
     host = config['host']
 
     if platform.uname()[0] == "Windows":
@@ -177,7 +177,7 @@ def create_vm_snapshot(vm_name: str, snap_name: str) -> Response:
 
 def parse_result(rs: Response) -> dict:
     """
-    Parse Respnse object obtained from hyper-v.
+    Parse Response object obtained from hyper-v.
 
     Args:
         rs: Response object with its properties (out, err and return_code).
@@ -350,7 +350,7 @@ def run_cmd_ssh(cmd: str) -> Response:
     ssh_client.load_system_host_keys()
     ssh_client.set_missing_host_key_policy(AutoAddPolicy())
     ssh_client.connect(username=config['user'],
-                       password=config['pass'],
+                       password=b64decode(config['pass']),
                        hostname=config['host'],
                        port=int(config['ssh_port']),
                        allow_agent=False,
@@ -380,7 +380,7 @@ def run_cmd_winrm(cmd: str) -> Response:
                       transport='ntlm',
                       username=r'{}\{}'.format(config['domain'],
                                                config['user']),
-                      password=config['pass'],
+                      password=b64decode(config['pass']),
                       server_cert_validation='ignore')
 
     shell_id = client.open_shell()
