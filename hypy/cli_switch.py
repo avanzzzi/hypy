@@ -8,7 +8,7 @@ def switch():
     pass
 
 
-@switch.command('ls', help='List avaiable virtual network switches in the Hyper-V server')
+@switch.command('ls', help='List available virtual network switches in the Hyper-V server')
 def list_switches():
     rs = hvclient.list_switches()
     switches = hvclient.parse_result(rs)
@@ -40,7 +40,7 @@ def get_switch(by_name, ident):
 #
 # Aliases
 #
-@click.command('switches', help='List avaiable virtual network switches in the Hyper-V server')
+@click.command('switches', help='List available virtual network switches in the Hyper-V server')
 @click.pass_context
 def switches(ctx):
     ctx.forward(list_switches)
