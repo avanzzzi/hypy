@@ -37,8 +37,9 @@ def connect(vm_id: str, vm_name: str, vm_index: str):
                         '/u:{}'.format(user),
                         '/p:{}'.format(passw),
                         '/t:{} [{}] {}'.format(host, vm_index, vm_name),
-                        '/cert-ignore']
+                        '/cert:ignore']
 
+    print(' '.join(cmd))
     try:
         handle = Popen(cmd, stdout=DEVNULL, stderr=PIPE)
         errs = handle.communicate(timeout=5)[1]
