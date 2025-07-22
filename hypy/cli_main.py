@@ -4,21 +4,23 @@ import click
 from hypy.modules import cache, config, hvclient, printer
 
 
-@click.group('cli')
+@click.group('cli', invoke_without_command=True)
 @click.option('--user', '-u', help='Username in hyper-v server')
 @click.option('passw', '--pass', '-p', help='Password in hyper-v server')
 @click.option('--domain', '-d', help='Domain name')
 @click.option('--host', '-m', help='Hyper-V server hostname/ip address')
 @click.option('--proto', '-t', help='Protocol to be used',
               type=click.Choice(['ssh', 'winrm']))
-def cli(user, passw, domain, host, proto):
+@click.pass_context
+def cli(ctx, user, passw, domain, host, proto):
     """
     Multiplataform Hyper-V Manager using Python and FreeRDP
     """
-    config.load(user, passw, domain, host, proto)
-    hvclient.config = config.configuration
-    cache.current_host = config.configuration['host']
-    cache.sync_interval = config.configuration['sync_interval']
+    if ctx.invoked_subcommand != 'credentials':
+        config.load(user, passw, domain, host, proto)
+        hvclient.config = config.configuration
+        cache.current_host = config.configuration['host']
+        cache.sync_interval = config.configuration['sync_interval']
 
 
 @cli.command("status", help='Show virtual machine current status')

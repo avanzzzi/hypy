@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hypy3"
-version = "0.3.6"
+version = "0.3.7"
 description = "Multiplataform Hyper-V Manager using Python and FreeRDP"
 authors = ["Gabriel Avanzi <gabriel.avanzi@gmail.com>"]
 license = "GPL-3.0"

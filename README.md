@@ -40,7 +40,7 @@ pip3 install git+https://github.com/avanzzzi/hypy.git
 
 ## Configuration
 To configure Hypy, create the file '~/.hypy.conf'. You can use hypy.conf.example that comes with the package to get a starting point or use the contents below.
-These options can be overriden in the command line if needed.
+These options can be overriden in the command line if needed. Also, you can generate this file using `hypy credentials create`
 ```ini
 [credentials]
 host = <server name in domain>
@@ -70,22 +70,23 @@ Options:
   --help                   Show this message and exit.
 
 Commands:
-  connect   Connect to virtual machine identified by...
-  create    Create a new snapshot with vm's current state
-  delete    Delete a machine's snapshot by name
-  list      List virtual machines and its indexes
-  ls        List updated virtual machines and its indexes
-  pause     Pause virtual machine identified by index
-  restore   Restore virtual machine snapshot
-  resume    Resume (paused) virtual machine identified by...
-  save      Save virtual machine identified by index
-  snap      Manage virtual machine snapshots
-  snaps     List virtual machine snapshots
-  start     Start virtual machine identified by index
-  status    Show virtual machine current status
-  stop      Stop virtual machine identified by index
-  switch    Manage virtual network switches in the...
-  switches  List avaiable virtual network switches in the...
+  connect      Connect to virtual machine identified by index
+  create       Create a new snapshot with vm's current state
+  credentials  Generate or update the credentials file
+  delete       Delete a machine's snapshot by name
+  list         List virtual machines and its indexes
+  ls           List updated virtual machines and its indexes
+  pause        Pause virtual machine identified by index
+  restore      Restore virtual machine snapshot
+  resume       Resume (paused) virtual machine identified by index
+  save         Save virtual machine identified by index
+  snap         Manage virtual machine snapshots
+  snaps        List virtual machine snapshots
+  start        Start virtual machine identified by index
+  status       Show virtual machine current status
+  stop         Stop virtual machine identified by index
+  switch       Manage virtual network switches in the Hyper-V server.
+  switches     List available virtual network switches in the Hyper-V server
 ```
 
 If you need help on any subcommand, run `hypy.py COMMAND --help`.
