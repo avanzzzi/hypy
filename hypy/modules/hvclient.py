@@ -39,10 +39,11 @@ def connect(vm_id: str, vm_name: str, vm_index: str):
                         '/t:{} [{}] {}'.format(host, vm_index, vm_name),
                         '/cert:ignore']
 
+    print(cmd)
     print(' '.join(cmd))
     try:
         handle = Popen(cmd, stdout=DEVNULL, stderr=PIPE)
-        errs = handle.communicate(timeout=5)[1]
+        errs = handle.communicate(timeout=15)[1]
         if errs:
             print(errs.decode('utf-8'))
     except FileNotFoundError as err:
